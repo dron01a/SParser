@@ -13,7 +13,7 @@ namespace SXML{
     struct TAG;  // declaration struct with tag information
 
     class XML; // class for work with XML
-    class XMLfile; // class for work with XML in file
+    class XMLdocument; // class for work with XML in file
     class XMLstring; // class for work with XML in string 
 
     // load XML from source
@@ -52,10 +52,10 @@ namespace SXML{
         virtual int findTAG(std::string tag_name, std::string prop = "", std::string val = ""); // find tag in XML
     };
 
-    class XMLfile : public XML{
+    class XMLdocument : public XML{
     public:
-        XMLfile(std::string fileName); // class constructor
-        ~XMLfile(); // class destructor
+        XMLdocument(std::string fileName); // class constructor
+        ~XMLdocument(); // class destructor
         TAG getTAG(std::string tag_name, std::string prop = "", std::string val = ""); // get tag for n0ame, attrib, value
         TAGArray select(std::string tagName); // return list of tags from tag name 
         int findTAG(std::string tag_name, std::string prop = "", std::string val = ""); // find tag in XML

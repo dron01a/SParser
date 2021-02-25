@@ -59,15 +59,15 @@ std::string SXML::XMLreader::TAGname(std::string src){
     return tag_prop[0];
 }
 
-SXML::XMLfile::XMLfile(std::string source){
+SXML::XMLdocument::XMLdocument(std::string source){
     this->source = new FSTool::file(source);
 }
 
-SXML::XMLfile::~XMLfile(){
+SXML::XMLdocument::~XMLdocument(){
     delete source;
 }
 
-SXML::TAG SXML::XMLfile::getTAG(std::string tag_name, std::string prop, std::string val){
+SXML::TAG SXML::XMLdocument::getTAG(std::string tag_name, std::string prop, std::string val){
     TAG result;
     int * found = new int(findTAG("<"+tag_name,prop,val));
     std::string *temp = new std::string(source->get(*found));
@@ -89,7 +89,7 @@ SXML::TAG SXML::XMLfile::getTAG(std::string tag_name, std::string prop, std::str
     return result;
 }
 
-SXML::TAG SXML::XMLfile::get_sub_tag(int & start_pos){
+SXML::TAG SXML::XMLdocument::get_sub_tag(int & start_pos){
     TAG result;
     std::string *temp = new std::string(source->get(start_pos));
     std::remove(temp->begin(), temp->end(), '\t'); 
@@ -114,7 +114,7 @@ SXML::TAG SXML::XMLfile::get_sub_tag(int & start_pos){
     return result;
 }
 
-SXML::TAGArray SXML::XMLfile::select(std::string tagName){
+SXML::TAGArray SXML::XMLdocument::select(std::string tagName){
     TAGArray result;
     int * tagPos; // position of tag in file 
     tagPos = new int(source->find("<" + tagName)); // get position 
@@ -143,7 +143,7 @@ SXML::TAGArray SXML::XMLfile::select(std::string tagName){
     return result;
 }
 
-int SXML::XMLfile::findTAG(std::string tag_name, std::string prop, std::string val){
+int SXML::XMLdocument::findTAG(std::string tag_name, std::string prop, std::string val){
     int result = source->find(tag_name);
     while( TAGname(source->get(result)) != tag_name ){
         result = source->find(tag_name);
