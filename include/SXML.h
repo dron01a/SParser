@@ -65,6 +65,7 @@ namespace SXML{
     };
 
     class XMLstring : public XML{
+    public:
         XMLstring(std::string source); // constructor
         ~XMLstring(); // class destructor
         TAG getTAG(std::string tag_name, std::string prop = "", std::string val = ""); // get tag for n0ame, attrib, value

@@ -1,5 +1,25 @@
 #include "SXML.h"
 
+SXML::XML* SXML::loadXML(std::string _rec, std::string mode = "s"){
+    if(mode == "f"){
+        return new XMLdocument(_rec);
+    }
+    if(mode == "s"){
+        return new XMLstring(_rec);
+    }
+}
+
+SXML::XML * loadXMLFile(std::string fileName){
+    if(FSTool::exists(fileName)){
+        return new XMLdocument(fileName);
+    }
+    return NULL;
+}
+
+SXML::XML* loadXMLStr(std::string text){
+    return new XMLstring(text);
+}
+
 // src -> string with XML text
 std::string SXML::XMLreader::TAGvalue(std::string src){
     std::string result;
@@ -232,5 +252,71 @@ SXML::TAG SXML::XMLstring::get_sub_tag(int & start_pos){
     }
     delete closeChar;
     delete temp;
+    return result;
+}
+
+SXML::TAGArray SXML::XMLstring::select(std::string tagName){
+    TAGArray result;
+    int * tagPos; // position of tag in file 
+    tagPos = new int(source->find("<" + tagName)); // get position 
+    int * closeChar = new int(source->find_first_of(">", * tagPos)); 
+    while(*tagPos != -1){
+        TAG tag; // for collect information
+        std::string *temp = new std::string(source->substr(*tagPos, *closeChar - *tagPos + 1)); // string with tag 
+        tag.attrib = attrib(*temp);
+        tag.name = TAGname(*temp);
+        tag.value = TAGvalue(*temp);
+        std::string * closeTag = new std::string("</" + tag.name + ">"); 
+        int * closeTagPos = new int;
+        *closeTagPos = source->find(*closeTag,*tagPos);
+        if(*closeTagPos != -1){
+            for(int i = *tagPos + tagName.length() + 3; i < *closeTagPos; i++){
+                TAG subTag = get_sub_tag(i); // added sub tags
+                tag.subTAGs.insert(std::make_pair(subTag.name,subTag)); 
+            }
+        }
+        delete closeTagPos;
+        delete temp;
+        delete closeTag;
+        result.push_back(tag);
+        *tagPos = source->find("<" +tagName,*closeTagPos + 1); // get position of next tag
+        * closeChar = source->find_first_of(">", * tagPos); 
+    } 
+    delete closeChar;
+    delete tagPos;
+    return result;
+}
+
+int SXML::XMLstring::findTAG(std::string tag_name, std::string prop, std::string val){
+    int result = source->find(tag_name);
+    int * closeChar = new int(source->find_first_of(">", result));
+    while( TAGname(source->substr(result,*closeChar - result + 1 )) != tag_name ){
+        result = source->find(tag_name);
+    }
+    std::string * temp = new std::string;
+    *temp = source->substr(result,*closeChar - result + 1 );
+    WPTool::string_content * str;
+    str = new WPTool::string_content(*temp," \t\"\'=");
+    int * p_pos = new int(str->find(prop));
+    int * v_pos = new int(str->find(val, * p_pos));
+    int * l_pos = new int(*v_pos - *p_pos);
+    while(*l_pos != 1){  
+        result = source->find(tag_name,result + 1);
+        if(result == -1){
+            break;
+        }
+        else{
+            *temp = source->substr(result,*closeChar - result + 1 );
+            str->set_string(*temp);
+            * p_pos = str->find(prop);
+            * v_pos = str->find(val, * p_pos);
+            * l_pos = *v_pos - *p_pos;
+        }
+    }
+    delete temp; 
+    delete str;
+    delete p_pos;
+    delete v_pos;
+    delete l_pos;
     return result;
 }
