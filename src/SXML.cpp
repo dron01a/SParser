@@ -22,21 +22,20 @@ SXML::XML* loadXMLStr(std::string text){
 
 // src -> string with XML text
 std::string SXML::XMLreader::TAGvalue(std::string src){
+    std::string source = src;
+    source.erase(std::remove(source.begin(), source.end(), '\t'), source.end()); // remove chars
+    source.erase(std::remove(source.begin(), source.end(), '\n'), source.end());
     std::string result;
-    if(src[src.length() - 1] != '/'){
-        int * first_char = new int(src.find_first_of("<")); 
-        int * last_char = new int(src.find_last_of("<"));
+    if(source[source.length() - 1] != '/'){
+        int * first_char = new int(source.find_first_of(">")); 
+        int * last_char = new int(source.find_first_of("<", * first_char));
         if((*first_char != std::string::npos) && (*last_char != std::string::npos)){
             if(*first_char != *last_char){
-                int * open_char = new int(src.find_last_of("<")); // get first position of "<"
-                int * close_char = new int(src.find_first_of(">")); // get first position of ">"       
-                int * len = new int(*open_char - *close_char);
+                int * len = new int(* last_char - * first_char);
                 if(*len > 0){
-                    result = src.substr(*close_char+1,*len-1); // cut the tag value from the string
+                    result = source.substr(* first_char+1,*len-1); // cut the tag value from the string
                 }
                 delete len;
-                delete open_char;
-                delete close_char;
             }
         }
         delete first_char;
@@ -207,19 +206,22 @@ SXML::XMLstring::~XMLstring(){
 
 SXML::TAG SXML::XMLstring::getTAG(std::string tag_name, std::string prop, std::string val){
     TAG result;
-    int * found = new int(findTAG("<"+tag_name,prop,val));
+    int * found = new int(findTAG(tag_name,prop,val));
     int * closeChar = new int(source->find_first_of(">", * found)); 
-    std::string *temp = new std::string(source->substr(*found, *closeChar - *found + 1));
-    result.attrib = attrib(*temp);
-    result.name = TAGname(*temp);
-    result.value = TAGvalue(*temp);
-    std::string * closeTag = new std::string("</" + result.name + ">"); 
+    std::string * closeTag = new std::string("</" + tag_name + ">"); 
     int * closeTagPos = new int;
-    *closeTagPos = source->find(*closeTag,*found);
+    *closeTagPos = source->find(*closeTag,*found + tag_name.size());
+    std::string *temp = new std::string(source->substr(*found, *closeTagPos - *found + closeTag->size()));
+    result.attrib = attrib(*temp);  // get attrib
+    result.name = TAGname(*temp);   // get name 
+    result.value = TAGvalue(*temp); // get value 
     if(*closeTagPos != std::string::npos){
-        for(int tagCount = * closeChar + 1; tagCount < *closeTagPos; tagCount++){
-            TAG subTag = get_sub_tag(tagCount);
-            result.subTAGs.insert(std::make_pair(subTag.name,subTag));
+        std::string tagContent = temp->substr(tag_name.size() + 2 , * closeTagPos - *closeChar - 1);
+        if(tagContent.find_first_of("<>") != std::string::npos){
+            for(int tagCount = * closeChar + 1; tagCount < *closeTagPos; tagCount++){
+                TAG subTag = get_sub_tag(tagCount);
+                result.subTAGs.insert(std::make_pair(subTag.name,subTag));
+            }
         }
     }
     delete closeChar;
@@ -231,9 +233,12 @@ SXML::TAG SXML::XMLstring::getTAG(std::string tag_name, std::string prop, std::s
 
 SXML::TAG SXML::XMLstring::get_sub_tag(int & start_pos){
     TAG result;
-    int * openChar = new int(source->find_first_of("<", start_pos));
-    int * closeChar = new int(source->find_first_of(">", start_pos)); 
-    std::string *temp = new std::string(source->substr(start_pos,*closeChar - start_pos + 1 ));
+    int * openChar;
+    int * closeChar; 
+    std::string * temp;
+    openChar = new int(source->find_first_of("<", start_pos));
+    closeChar = new int(source->find_first_of(">", start_pos)); 
+    temp = new std::string(source->substr(start_pos,*closeChar - start_pos + 1 ));
     if(!temp->empty()){
         result.attrib = attrib(*temp);
         result.name = TAGname(*temp);
@@ -242,9 +247,12 @@ SXML::TAG SXML::XMLstring::get_sub_tag(int & start_pos){
         int * closeTagPos = new int;
         *closeTagPos = source->find(*closeTag, *closeChar);
         if(*closeTagPos != std::string::npos){
-            for(int tagCount = *closeChar + closeTag->size() - 1; tagCount < *closeTagPos; tagCount++){
-                TAG subTag = get_sub_tag(tagCount);
-                result.subTAGs.insert(std::make_pair(subTag.name,subTag));
+            std::string tagContent = temp->substr(result.name.size() + 2 , * closeTagPos - *closeChar - 1);
+            if(tagContent.find_first_of("<>") != std::string::npos){
+                for(int tagCount = *closeChar + closeTag->size() - 1; tagCount < *closeTagPos; tagCount++){
+                    TAG subTag = get_sub_tag(tagCount);
+                    result.subTAGs.insert(std::make_pair(subTag.name,subTag));
+                }
             }
             start_pos = *closeTagPos;
         }

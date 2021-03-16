@@ -7,7 +7,6 @@
 #include <list>
 #include <vector>
 
-
 namespace SXML{ 
 
     struct TAG;  // declaration struct with tag information
