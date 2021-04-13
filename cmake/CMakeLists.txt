@@ -13,14 +13,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 # add sources
 set( __SOURCES__ ../src/SXML.cpp )
 
-add_subdirectory(libs/FSTool/CMake)
+add_subdirectory(libs/FSTool/cmake)
 add_subdirectory(libs/WPTool/cmake)
                  
 # make lib 
 add_library( SXML STATIC ${__SOURCES__})
 
 # add libs 
-target_link_libraries( SXML FSTLib WPTLib )
+target_link_libraries( SXML FSTLib WPTLib)
 
 # set name and prefix
 set_target_properties(SXML PROPERTIES OUTPUT_NAME "SXMLlib")

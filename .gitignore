@@ -44,6 +44,8 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 
+poligon/*
+
 # Windows shortcuts
 *.lnk
 
