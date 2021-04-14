@@ -44,6 +44,7 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 
+./poligon
 poligon/*
 
 # Windows shortcuts
