@@ -7,23 +7,19 @@
 #include <list>
 #include <vector>
 
+#define _NPOS std::string::npos
 
 namespace SXML{ 
 
-    struct TAG;  // declaration struct with tag information
+    enum _tokenType{
+        _tag = 0,
+        _closeTag,
+        _text
+    };
+    
+    _tokenType getTokenType(std::string token);
 
-    class XML; // class for work with XML
-
-    // load XML from source
-    // f - load from file
-    // s - load from string 
-    XML* loadXML(std::string _rec, std::string mode = "s"); 
-
-    // load XML from file 
-    XML* loadXMLFile(std::string fileName);
-
-    // load XML from string 
-    XML* loadXMLStr(std::string text); 
+    struct TAG;  // declaration struct with tag information-
 
     typedef std::map<std::string, std::string> attribTAG;
     typedef std::map<std::string, TAG> TAGList;
@@ -31,50 +27,37 @@ namespace SXML{
 
     struct TAG {
         std::string name;  // tag name
-        std::string value; // tag value
+        std::string text;  // text in tag 
         attribTAG attrib;  // tag properties
         TAGList subTAGs;   // child tags
     };
 
+    class XML; // class for work with XML
+
+    // load XML from file 
+    XML* loadXMLFile(std::string fileName);
+
+    // load XML from string 
+    XML* loadXMLStr(std::string text); 
+
     class XMLreader{
     protected:
-        attribTAG attrib(std::string src);     // get tag prop from src
-        std::string TAGvalue(std::string src); // return tag value 
-        std::string TAGname(std::string src);  // return tag name
+        attribTAG attrib(std::string src);    // get tag prop from src     
+        std::string TAGtext(std::string src); // return tag value 
+        std::string TAGname(std::string src); // return tag name
     };
 
     class XML : protected XMLreader{
     public:
-        virtual TAG getTAG(std::string tag_name, std::string prop = "", std::string val = "") = 0; // get tag for n0ame, attrib, value
-        virtual TAGArray select(std::string tagName) = 0; // return list of tags from tag name 
-        virtual int findTAG(std::string tag_name, std::string prop = "", std::string val = "") = 0; // find tag in XML
+        XML(std::string source); // class constructor 
+        TAG getTAG(std::string tagName, std::string prop = "", std::string val = ""); // get tag for name, attrib, value 
+        TAGArray select(std::string tagName);  // return list of tags from tag name
+    private:
+        std::string source; // string with XML
+        int findTAG(std::string tag_name, std::string prop = "", std::string val = ""); // find tag in XML
+        TAG getNextTag(int & position); // get next tag in string
     };
     
-    // class for work with XML in file
-    class XMLdocument : public XML{
-    public:
-        XMLdocument(std::string fileName); // class constructor
-        ~XMLdocument(); // class destructor
-        TAG getTAG(std::string tag_name, std::string prop = "", std::string val = ""); // get tag for n0ame, attrib, value
-        TAGArray select(std::string tagName); // return list of tags from tag name 
-        int findTAG(std::string tag_name, std::string prop = "", std::string val = ""); // find tag in XML
-    private:
-        FSTool::file * source; // file with XML
-        TAG get_sub_tag(int & start_pos);
-    };
-
-    // class for work with XML in string 
-    class XMLstring : public XML{
-    public:
-        XMLstring(std::string source); // constructor
-        ~XMLstring(); // class destructor
-        TAG getTAG(std::string tag_name, std::string prop = "", std::string val = ""); // get tag for n0ame, attrib, value
-        TAGArray select(std::string tagName); // return list of tags from tag name  
-        int findTAG(std::string tag_name, std::string prop = "", std::string val = ""); // find tag in XML
-    private:
-        std::string *source; // source string 
-        TAG get_sub_tag(int & start_pos);
-    };
 
 }
  
