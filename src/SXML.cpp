@@ -92,16 +92,20 @@ SXML::TAG SXML::XML::getTAG(std::string tag_name, std::string prop, std::string 
     result.attrib = attrib(*temp);  // get attrib
     result.name = TAGname(*temp);   // get name 
     if(*closeTagPos != _NPOS){
-        std::string tagContent = temp->substr(tag_name.size() + 2 , * closeTagPos - *closeChar - 1);
+        int *tagContentLen = new int(* closeTagPos - *closeChar - 1);
+        std::string tagContent = source.substr(* closeChar + 1, *tagContentLen);
         if(getTokenType(tagContent) == _text){
             result.text = tagContent;
         }
         if(getTokenType(tagContent) == _tag){
-            for(int tagCount = * closeChar + 1; tagCount < *closeTagPos; tagCount++){
+            for(int tagCount = * closeChar + 1; tagCount < *closeTagPos - 1; tagCount++){
                 TAG subTag = getNextTag(tagCount);
-                result.subTAGs.insert(std::make_pair(subTag.name,subTag));
+                if(subTag.name.find("/") == _NPOS){
+                    result.subTAGs.insert(std::make_pair(subTag.name,subTag));
+                }
             }
         }
+        delete tagContentLen;
     }
     delete closeChar;
     delete closeTagPos;
@@ -126,21 +130,23 @@ SXML::TAG SXML::XML::getNextTag(int & position){
         *closeTagPos = source.find(*closeTag, *closeChar);
         if(*closeTagPos != _NPOS){
             int *tagContentLen = new int(* closeTagPos - *closeChar - 1);
-            std::string tagContent = temp->substr(result.name.size() + 2 ,*tagContentLen );
+            std::string tagContent = source.substr(*closeChar + 1 ,*tagContentLen );
             if(getTokenType(tagContent) == _text){
                 result.text = tagContent;
             }
             if(getTokenType(tagContent) == _tag){
-                for(int tagCount = * closeChar + 1; tagCount < *closeTagPos; tagCount++){
+                for(int tagCount = * closeChar + 1; tagCount < *closeTagPos - 1; tagCount++){
                     TAG subTag = getNextTag(tagCount);
-                    result.subTAGs.insert(std::make_pair(subTag.name,subTag));
+                    if(subTag.name.find("/") == _NPOS){
+                        result.subTAGs.insert(std::make_pair(subTag.name,subTag));
+                    }
                 }
             }
             delete tagContentLen;
-            position = source.find_first_of(">", *closeTagPos);
+            position = source.find_first_of(">", *closeTagPos + 1);
         }
         else{
-            position = source.find_first_of(">", position);
+            position = source.find_first_of(">", position + 1);
         }
         delete closeTagPos;
         delete closeTag;
@@ -223,5 +229,35 @@ SXML::TAGArray SXML::XML::select(std::string tagName){
     } 
     delete closeChar;
     delete tagPos;
+    return result;
+}
+
+SXML::TAG SXML::XML::root(){
+    TAG result; 
+    size_t * firstIndex = new size_t(source.find("<?")); // positions with data of encoding and XML version
+    size_t * secondIndex = new size_t(source.find("?>")); 
+    size_t * start; // positions with TAG
+    size_t * end; 
+    std::string * temp; // twmp string 
+    if( * firstIndex == _NPOS ){
+        start = new size_t(source.find("<", *secondIndex + 1));
+    }
+    else if( * secondIndex == _NPOS ){
+        start = new size_t(source.find("<", *firstIndex + 1));
+    }
+    else if ( * firstIndex == _NPOS && * secondIndex == _NPOS){
+        start = new size_t(source.find("<"));
+    }
+    else{
+        start = new size_t(source.find("<", *secondIndex + 1));
+    }
+    end = new size_t(source.find(">", *start));
+    temp = new std::string(source.substr(*start, *end - *start - 1));
+    result = getTAG(TAGname(*temp));
+    delete firstIndex;
+    delete secondIndex;
+    delete start;
+    delete end;
+    delete temp;
     return result;
 }
