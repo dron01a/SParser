@@ -261,3 +261,72 @@ SXML::TAG SXML::XML::root(){
     delete temp;
     return result;
 }
+
+int SXML::writeXML(std::string fileName,TAG root,std::string version, std::string enc){
+    FSTool::file xmlFile(fileName); // file for write XML
+    if(!xmlFile.exists()){
+        throw 1;
+    }
+    if(!xmlFile.empty()){
+        xmlFile.clear();
+    }    
+    xmlFile.add("<?xml version=\"" + version + "\" encoding=\"" + enc + "\"");
+    xmlFile.add(convertTAG(root));
+}
+
+std::string SXML::convertTAG(TAG tag){
+    std::string tagString = "<" + tag.name;
+    if(tag.attrib.size() != 0){
+        for(attribTAG::iterator it = tag.attrib.begin(); it != tag.attrib.end(); it++){
+            tagString += " " + it->first + "=\"" + it->second +"\""; // add tag attrib`s to string
+        }
+        if(tag.subTAGs.size() == 0 && tag.text.empty()){
+            tagString += "/";
+        }
+    }
+    tagString += ">"; // add char to next line 
+    if(tag.subTAGs.size() != 0){
+        int lev = 1;
+        tagString += "\n";
+        for (TAGList::iterator itr = tag.subTAGs.begin();itr != tag.subTAGs.end(); itr++){
+            tagString += convertTAG(lev,itr->second); // get string with child tag 
+            lev = 1;
+        }
+        tagString += "</" + tag.name + ">\n";
+    }
+    else{
+        tagString += tag.text; 
+        tagString += "</" + tag.name + ">\n";
+    }
+    return tagString;
+}
+
+std::string SXML::convertTAG(int & lvl, TAG tag){
+    std::string space; 
+    for(int count = 0; count < lvl; count++){
+        space += "\t";
+    }
+    std::string tagString = space + "<" + tag.name;
+    if(tag.attrib.size() != 0){
+        for(attribTAG::iterator it = tag.attrib.begin(); it != tag.attrib.end(); it++){
+            tagString += " " + it->first + "=\"" + it->second +"\""; // add tag attrib`s to string
+        }
+        if(tag.subTAGs.size() == 0 && tag.text.empty()){
+            tagString += "/";
+        }
+    }
+    tagString += ">"; // add char to next line 
+    if(tag.subTAGs.size() != 0){
+        lvl++;
+        tagString += "\n";
+        for (TAGList::iterator itr = tag.subTAGs.begin();itr != tag.subTAGs.end(); itr++){
+            tagString += convertTAG(lvl,itr->second); // get string with child tag 
+        }
+        tagString += space + "</" + tag.name + ">\n";
+    }
+    else{
+        tagString += tag.text; 
+        tagString += "</" + tag.name + ">\n";
+    }
+    return tagString;
+}

@@ -58,7 +58,12 @@ namespace SXML{
         TAG getNextTag(int & position); // get next tag in string
     };
     
+    // comvert tag to string
+    static std::string convertTAG(int & lvl, TAG tag);
+    std::string convertTAG(TAG tag); 
 
+    // write XML free to file  
+    int writeXML(std::string fileName,TAG root, std::string version = "1.0" , std::string enc = "utf-8");
 }
  
 
