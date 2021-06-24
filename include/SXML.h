@@ -1,11 +1,12 @@
 #ifndef __SXML__H__
 #define __SXML__H__
 
-#include "FSTool.h"
-#include "WPTool.h"
 #include <map>
 #include <list>
 #include <vector>
+
+#include "../libs/FSTool_lib/FSTool.h"
+#include "../libs/WPTool_lib/WPTool.h"
 
 #define _NPOS std::string::npos
 
@@ -18,11 +19,13 @@ namespace SXML{
     };
     
     _tokenType getTokenType(std::string token);
+    std::string content(std::string _src, int _posStart, int _posEnd ); // return tag content
 
-    struct TAG;  // declaration struct with tag information-
+    struct TAG;     // declaration struct with tag information-
+    class XML;      // class for work with XML
 
     typedef std::map<std::string, std::string> attribTAG;
-    typedef std::map<std::string, TAG> TAGList;
+    typedef std::multimap<std::string, TAG> TAGList;
     typedef std::vector<TAG> TAGArray;
 
     struct TAG {
@@ -31,8 +34,6 @@ namespace SXML{
         attribTAG attrib;  // tag properties
         TAGList subTAGs;   // child tags
     };
-
-    class XML; // class for work with XML
 
     // load XML from file 
     XML* loadXMLFile(std::string fileName);
@@ -52,12 +53,13 @@ namespace SXML{
         XML(std::string source); // class constructor 
         TAG getTAG(std::string tagName, std::string prop = "", std::string val = ""); // get tag for name, attrib, value 
         TAGArray select(std::string tagName);  // return list of tags from tag name
+        TAG root(); // return root tag 
     private:
         std::string source; // string with XML
         int findTAG(std::string tag_name, std::string prop = "", std::string val = ""); // find tag in XML
         TAG getNextTag(int & position); // get next tag in string
     };
-    
+
     // comvert tag to string
     static std::string convertTAG(int & lvl, TAG tag);
     std::string convertTAG(TAG tag); 
