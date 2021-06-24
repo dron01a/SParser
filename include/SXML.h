@@ -5,8 +5,8 @@
 #include <list>
 #include <vector>
 
-#include "../libs/FSTool_lib/FSTool.h"
-#include "../libs/WPTool_lib/WPTool.h"
+#include "FSTool.h"
+#include "WPTool.h"
 
 #define _NPOS std::string::npos
 
