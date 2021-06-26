@@ -58,6 +58,8 @@ namespace SXML{
         std::string source; // string with XML
         int findTAG(std::string tag_name, std::string prop = "", std::string val = ""); // find tag in XML
         TAG getNextTag(int & position); // get next tag in string
+        void parceTagContent(TAG & _tag, int _start, int _end);
+        void parceTagAttrs(TAG & _tag, int _start, int _end);
     };
 
     // comvert tag to string
