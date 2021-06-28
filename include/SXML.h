@@ -29,10 +29,11 @@ namespace SXML{
     typedef std::vector<TAG> TAGArray;
 
     struct TAG {
-        std::string name;  // tag name
-        std::string text;  // text in tag 
-        attribTAG attrib;  // tag properties
-        TAGList subTAGs;   // child tags
+        std::string name; // tag name
+        std::string text; // text in tag 
+        attribTAG attrib; // tag properties
+        TAGList subTAGs;  // child tags
+        _tokenType type;  // type of tag 
     };
 
     // load XML from file 
@@ -62,13 +63,13 @@ namespace SXML{
         void parceTagAttrs(TAG & _tag, int _start, int _end);
     };
 
-    // comvert tag to string
-    static std::string convertTAG(int & lvl, TAG tag);
-    std::string convertTAG(TAG tag); 
+    // convert tag to string
+    static std::string convertTagAttr(TAG _tag);
+    static std::string convertTAG(int & lvl, TAG _tag);
+    std::string convertTAG(TAG _tag); 
 
     // write XML free to file  
     int writeXML(std::string fileName,TAG root, std::string version = "1.0" , std::string enc = "utf-8");
 }
  
-
 #endif

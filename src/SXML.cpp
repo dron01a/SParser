@@ -63,6 +63,9 @@ SXML::_tokenType SXML::getTokenType(std::string token){
     if(*open_char == _NPOS || *close_char == _NPOS){    
         return _text;
     }
+    if(*open_char != _NPOS && *close_char != _NPOS && token[*close_char - 1] == '/'){
+        return _closeTag;
+    }
     return _tag;
 }
 
@@ -74,13 +77,15 @@ SXML::TAG SXML::XML::getTAG(std::string name, std::string prop, std::string val)
     TAG result;
     size_t *found = new size_t(findTAG(name,prop,val)); // tag position
     size_t *closeChar = new size_t(source.find_first_of(">", *found)); 
-    size_t *closeTagPos = new size_t(source.find("</" + name + ">",*found + name.size()));
     parceTagAttrs(result, *found, *closeChar); 
-    if(*closeTagPos != _NPOS){
-        parceTagContent(result,*closeChar, *closeTagPos);
+    if(result.type != _closeTag){
+        size_t *closeTagPos = new size_t(source.find("</" + name + ">", *closeChar));
+        if(*closeTagPos != _NPOS){
+            parceTagContent(result,*closeChar, *closeTagPos);
+        }
+        delete closeTagPos;
     }
     delete closeChar;
-    delete closeTagPos;
     return result;
 }
 
@@ -89,15 +94,17 @@ SXML::TAG SXML::XML::getNextTag(int & position){
     size_t *openChar = new size_t(source.find("<", position));
     size_t *closeChar = new size_t(source.find(">", position)); 
     parceTagAttrs(result, *openChar, *closeChar);
-    size_t *closeTagPos = new size_t(source.find("</" + result.name + ">", *closeChar));
-    if(*closeTagPos != _NPOS){
-        parceTagContent(result,*closeChar, *closeTagPos);
-        position = source.find_first_of(">", *closeTagPos + 1);
+    if(result.type != _closeTag){
+        size_t *closeTagPos = new size_t(source.find("</" + result.name + ">", *closeChar));
+        if(*closeTagPos != _NPOS){
+            parceTagContent(result,*closeChar, *closeTagPos);
+            position = source.find_first_of(">", *closeTagPos + 1);
+        }
+        delete closeTagPos;
     }
     else{
         position = source.find_first_of(">", position + 1);
     }
-    delete closeTagPos;
     delete closeChar;
     return result;
 }
@@ -111,14 +118,16 @@ int SXML::XML::findTAG(std::string tag_name, std::string prop, std::string val){
         *closeChar = source.find_first_of(">", result + 1);
     }
     attribTAG atrs = attrib(content(source, result, *closeChar));
-    while(atrs[prop] != val){
-        result = source.find("<" + tag_name, result + 1);
-        *closeChar = source.find_first_of(">", result) + 1;
-        while( TAGname(content(source, result, *closeChar)) != tag_name ){
+    if(prop != "" && prop != ""){
+        while(atrs[prop] != val){
             result = source.find("<" + tag_name, result + 1);
-            *closeChar = source.find_first_of(">", result + 1);
+            *closeChar = source.find_first_of(">", result) + 1;
+            while( TAGname(content(source, result, *closeChar)) != tag_name ){
+                result = source.find("<" + tag_name, result + 1);
+                *closeChar = source.find_first_of(">", result + 1);
+            }
+            atrs = attrib(content(source, result, *closeChar));
         }
-        atrs = attrib(content(source, result, *closeChar));
     }
     delete closeChar;
     return result;
@@ -130,10 +139,12 @@ SXML::TAGArray SXML::XML::select(std::string tagName){
     int * closeChar = new int(source.find(">", * tagPos)); 
     for(int count; *tagPos != _NPOS; count++){
         TAG tag; // for collect information
+        size_t * closeTagPos = new size_t(source.find("</" + tag.name + ">",*tagPos));
         parceTagAttrs(result[count], *tagPos , *closeChar); // string with tag 
-        int * closeTagPos = new int(source.find("</" + tag.name + ">",*tagPos));
-        if(*closeTagPos != _NPOS){
-            parceTagContent(result[count],*closeChar, *closeTagPos);
+        if(result[count].type != _closeTag){
+            if(*closeTagPos != _NPOS){
+                parceTagContent(result[count],*closeChar, *closeTagPos);
+            }
         }
         *tagPos = source.find("<" + tagName, * tagPos + 1); // get position of next tag
         *closeChar = source.find(">", * tagPos); 
@@ -151,8 +162,9 @@ std::string SXML::content(std::string _src, int _posStart, int _posEnd){
 
 void SXML::XML::parceTagAttrs(TAG & _tag, int _start, int _end){
     std::string *temp = new std::string(content(source, _start, _end));
-    _tag.attrib = attrib(*temp);
-    _tag.name = TAGname(*temp);
+    _tag.attrib = attrib(*temp);     // set attrib  
+    _tag.name = TAGname(*temp);      // set name
+    _tag.type = getTokenType(*temp); // set type
     delete temp;
 }
 
@@ -161,7 +173,7 @@ void SXML::XML::parceTagContent(TAG & __tag, int _start, int _end){
     if(getTokenType(*tagContent) == _text){
         __tag.text = *tagContent; // set tag text
     }
-    if(getTokenType(*tagContent) == _tag){
+    else{
         for(int tagCount = _start + 1; tagCount < _end - 1; tagCount++){
             TAG subTag = getNextTag(tagCount); 
             if(subTag.name.find("/") == _NPOS){
@@ -192,7 +204,7 @@ SXML::TAG SXML::XML::root(){
         start = new size_t(source.find("<", *secondIndex + 1));
     }
     end = new size_t(source.find(">", *start));
-    temp = new std::string(content(source, *start + 1, *end));
+    temp = new std::string(content(source, *start, *end));
     result = getTAG(TAGname(*temp));
     delete firstIndex;
     delete secondIndex;
@@ -205,69 +217,80 @@ SXML::TAG SXML::XML::root(){
 int SXML::writeXML(std::string fileName,TAG root,std::string version, std::string enc){
     FSTool::file xmlFile(fileName); // file for write XML
     if(!xmlFile.exists()){
-        throw 1;
+        return 1;
     }
     if(!xmlFile.empty()){
         xmlFile.clear();
     }    
     xmlFile.add("<?xml version=\"" + version + "\" encoding=\"" + enc + "\"?>");
     xmlFile.add(convertTAG(root));
+    return 0;
 }
 
 std::string SXML::convertTAG(TAG tag){
     std::string tagString = "<" + tag.name;
-    if(tag.attrib.size() != 0){
-        for(attribTAG::iterator it = tag.attrib.begin(); it != tag.attrib.end(); it++){
-            tagString += " " + it->first + "=\"" + it->second +"\""; // add tag attrib`s to string
-        }
-        if((tag.subTAGs.size() == 0) && tag.text.empty()){
-            tagString += "/";
-        }
-    }
+    tagString += convertTagAttr(tag);
     tagString += ">"; // add char to next line 
-    if(tag.subTAGs.size() != 0){
-        int lev = 1;
-        tagString += "\n";
-        for (TAGList::iterator itr = tag.subTAGs.begin();itr != tag.subTAGs.end(); itr++){
-            tagString += convertTAG(lev,itr->second); // get string with child tag 
-            lev = 1;
+    if(tag.type != _closeTag){
+        if(tag.subTAGs.size() != 0){
+            int lev = 1;
+            tagString += "\n";
+            for (TAGList::iterator itr = tag.subTAGs.begin();itr != tag.subTAGs.end(); itr++){
+                tagString += convertTAG(lev,itr->second); // get string with child tag 
+                lev = 1;
+            }
+            tagString += "</" + tag.name + ">\n";
         }
-        tagString += "</" + tag.name + ">\n";
+        else{
+            tagString += tag.text; 
+            tagString += "</" + tag.name + ">\n";
+        }
     }
     else{
-        tagString += tag.text; 
-        tagString += "</" + tag.name + ">\n";
+        tagString +="\n";
     }
     return tagString;
 }
 
 std::string SXML::convertTAG(int & lvl, TAG tag){
     std::string space; 
+    std::string tagString;
     for(int count = 0; count < lvl; count++){
         space += "\t";
     }
-    std::string tagString = space + "<" + tag.name;
-    if(tag.attrib.size() != 0){
-        for(attribTAG::iterator it = tag.attrib.begin(); it != tag.attrib.end(); it++){
-            tagString += " " + it->first + "=\"" + it->second +"\""; // add tag attrib`s to string
-        }
-        if(tag.subTAGs.size() == 0 && tag.text.empty()){
-            tagString += "/";
-        }
-    }
+    tagString = space + "<" + tag.name;
+    tagString += convertTagAttr(tag);
     tagString += ">"; // add char to next line 
-    if(tag.subTAGs.size() != 0){
-        lvl++;
-        tagString += "\n";
-        for (TAGList::iterator itr = tag.subTAGs.begin();itr != tag.subTAGs.end(); itr++){
-            tagString += convertTAG(lvl,itr->second); // get string with child tag 
+    if(tag.type != _closeTag){
+        if(tag.subTAGs.size() != 0){
+            lvl++;
+            tagString += "\n";
+            for (TAGList::iterator itr = tag.subTAGs.begin();itr != tag.subTAGs.end(); itr++){
+                tagString += convertTAG(lvl,itr->second); // get string with child tag 
+            }
+            lvl--;
+            tagString += space + "</" + tag.name + ">\n";
         }
-        lvl--;
-        tagString += space + "</" + tag.name + ">\n";
+        else{
+            tagString += tag.text; 
+            tagString += "</" + tag.name + ">\n";
+        }
     }
     else{
-        tagString += tag.text; 
-        tagString += "</" + tag.name + ">\n";
+        tagString +="\n";
     }
     return tagString;
+}
+
+std::string SXML::convertTagAttr(TAG _tag){
+    std::string result;
+    if(_tag.attrib.size() != 0){
+        for(attribTAG::iterator it = _tag.attrib.begin(); it != _tag.attrib.end(); it++){
+            result += " " + it->first + "=\"" + it->second +"\""; // add tag attrib`s to string
+        }
+        if(_tag.subTAGs.size() == 0 && _tag.text.empty()){
+            result += "/";
+        }
+    }
+    return result;
 }
