@@ -42,25 +42,45 @@ namespace SXML{
     // load XML from string 
     XML* loadXMLStr(std::string text); 
 
-    class XMLreader{
-    protected:
+    class XML{
+    public:
+        // class constructor
+        XML(std::string source); 
+
+        // get tag for name, attrib, value
+        TAG getTAG(std::string tagName, attribTAG _attrib = {{"", ""}}); 
+
+        // return list of tags from tag name
+        TAGArray select(std::string tagName);  
+        
+        // return count of tags with the same attributes
+        int count(std::string tagName, attribTAG _attrib = {{"", ""}});
+
+        // return root tag 
+        TAG root(); 
+    private:
+
+        // return true if content in attrsA == _attrsB
+        bool comapreTagAttrs(attribTAG _attrsA, attribTAG _attrsB); 
+
+        // find tag in XML
+        int findTAG(std::string tagName, attribTAG _attrib = {{"", ""}});
+        
+        // methods to get tag params
         attribTAG attrib(std::string src);    // get tag prop from src     
         std::string TAGtext(std::string src); // return tag value 
         std::string TAGname(std::string src); // return tag name
-    };
 
-    class XML : protected XMLreader{
-    public:
-        XML(std::string source); // class constructor 
-        TAG getTAG(std::string tagName, std::string prop = "", std::string val = ""); // get tag for name, attrib, value 
-        TAGArray select(std::string tagName);  // return list of tags from tag name
-        TAG root(); // return root tag 
-    private:
-        std::string source; // string with XML
-        int findTAG(std::string tag_name, std::string prop = "", std::string val = ""); // find tag in XML
-        TAG getNextTag(int & position); // get next tag in string
+        // parce content in xml tag, set child tag`s and text
         void parceTagContent(TAG & _tag, int _start, int _end);
+
+        // parce arttr in tag, set name to tag in object        
         void parceTagAttrs(TAG & _tag, int _start, int _end);
+      
+        // get next tag in string
+        TAG getNextTag(int & position); 
+        
+        std::string source; // string with XML
     };
 
     // convert tag to string
@@ -72,4 +92,5 @@ namespace SXML{
     int writeXML(std::string fileName,TAG root, std::string version = "1.0" , std::string enc = "utf-8");
 }
  
+
 #endif

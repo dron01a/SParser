@@ -12,7 +12,7 @@ SXML::XML* SXML::loadXMLStr(std::string text){
 }
 
 // src -> string with XML text
-std::string SXML::XMLreader::TAGtext(std::string src){
+std::string SXML::XML::TAGtext(std::string src){
     std::string source = src;
     std::string result;
     if(source[source.length() - 1] != '/'){
@@ -28,7 +28,7 @@ std::string SXML::XMLreader::TAGtext(std::string src){
 }
 
 // src -> string with XML text
-SXML::attribTAG SXML::XMLreader::attrib(std::string src){
+SXML::attribTAG SXML::XML::attrib(std::string src){
     SXML::attribTAG result;
     int * open_char = new int(src.find(" ", src.find("<"))); 
     int * close_char = new int(src.find(">"));
@@ -52,7 +52,7 @@ SXML::attribTAG SXML::XMLreader::attrib(std::string src){
 }
 
 // src -> string with XML text
-std::string SXML::XMLreader::TAGname(std::string src){
+std::string SXML::XML::TAGname(std::string src){
     WPTool::string_content tag_prop(src, " \n\t<>\"\'=");
     return tag_prop[0];
 }
@@ -71,22 +71,6 @@ SXML::_tokenType SXML::getTokenType(std::string token){
 
 SXML::XML::XML(std::string source){
     this->source = source;
-}
-
-SXML::TAG SXML::XML::getTAG(std::string name, std::string prop, std::string val){
-    TAG result;
-    size_t *found = new size_t(findTAG(name,prop,val)); // tag position
-    size_t *closeChar = new size_t(source.find_first_of(">", *found)); 
-    parceTagAttrs(result, *found, *closeChar); 
-    if(result.type != _closeTag){
-        size_t *closeTagPos = new size_t(source.find("</" + name + ">", *closeChar));
-        if(*closeTagPos != _NPOS){
-            parceTagContent(result,*closeChar, *closeTagPos);
-        }
-        delete closeTagPos;
-    }
-    delete closeChar;
-    return result;
 }
 
 SXML::TAG SXML::XML::getNextTag(int & position){
@@ -109,27 +93,53 @@ SXML::TAG SXML::XML::getNextTag(int & position){
     return result;
 }
 
-
-int SXML::XML::findTAG(std::string tag_name, std::string prop, std::string val){
-    size_t result = source.find("<" + tag_name);
-    size_t * closeChar = new size_t(source.find_first_of(">", result));
-    while(TAGname(content(source, result, *closeChar)) != tag_name ){
-        result = source.find("<" + tag_name, result + 1);
-        *closeChar = source.find_first_of(">", result + 1);
-    }
-    attribTAG atrs = attrib(content(source, result, *closeChar));
-    if(prop != "" && prop != ""){
-        while(atrs[prop] != val){
-            result = source.find("<" + tag_name, result + 1);
-            *closeChar = source.find_first_of(">", result) + 1;
-            while( TAGname(content(source, result, *closeChar)) != tag_name ){
-                result = source.find("<" + tag_name, result + 1);
-                *closeChar = source.find_first_of(">", result + 1);
-            }
-            atrs = attrib(content(source, result, *closeChar));
+SXML::TAG SXML::XML::getTAG(std::string tagName, attribTAG _attrib){
+    TAG result; 
+    size_t *found = new size_t(findTAG(tagName,_attrib)); // tag position
+    size_t *closeChar = new size_t(source.find_first_of(">", *found)); 
+    parceTagAttrs(result, *found, *closeChar); 
+    if(result.type != _closeTag){
+        size_t *closeTagPos = new size_t(source.find("</" + tagName + ">", *closeChar));
+        if(*closeTagPos != _NPOS){ 
+            parceTagContent(result,*closeChar, *closeTagPos);
         }
+        delete closeTagPos;
     }
     delete closeChar;
+    return result;
+}
+
+int SXML::XML::findTAG(std::string tagName, attribTAG _attrib){
+    size_t result = 0;
+    size_t closeChar;
+    attribTAG atrs;
+    bool _attrPassed = false;
+    while(!_attrPassed){
+        result = source.find("<" + tagName, result + 1);
+        closeChar = source.find_first_of(">", result) + 1;
+        while( TAGname(content(source, result, closeChar)) != tagName ){
+            if(result == _NPOS || closeChar == _NPOS){
+                throw "tag not found";
+            }
+            result = source.find("<" + tagName, result + 1);
+            closeChar = source.find_first_of(">", result + 1);
+        }
+        atrs = attrib(content(source, result, closeChar));
+        if(atrs.size() < _attrib.size()){
+            if(_attrib.begin()->first == "" && _attrib.begin()->second == "" && _attrib.size() == 1){
+                _attrPassed = true;
+            }
+            continue;
+        }
+        for(auto itr = _attrib.begin(); itr != _attrib.end(); itr++ ){
+            if(atrs[itr->first] == itr->second){
+                _attrPassed = true;
+            }
+            else{
+                _attrPassed = false;
+            }
+        }
+    }
     return result;
 }
 
@@ -153,6 +163,12 @@ SXML::TAGArray SXML::XML::select(std::string tagName){
     } 
     delete closeChar;
     delete tagPos;
+    return result;
+}
+
+int SXML::XML::count(std::string tagName, attribTAG _attrib = {{"", ""}}){
+    int result = 0;
+    
     return result;
 }
 
