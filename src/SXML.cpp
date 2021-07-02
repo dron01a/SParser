@@ -84,6 +84,9 @@ SXML::TAG SXML::XML::getNextTag(int & position){
             parceTagContent(result,*closeChar, *closeTagPos);
             position = source.find_first_of(">", *closeTagPos + 1);
         }
+        else{
+            position = source.find_first_of(">", position + 1);
+        }
         delete closeTagPos;
     }
     else{
@@ -101,7 +104,7 @@ SXML::TAG SXML::XML::getTAG(std::string tagName, attribTAG _attrib){
     if(result.type != _closeTag){
         size_t *closeTagPos = new size_t(source.find("</" + tagName + ">", *closeChar));
         if(*closeTagPos != _NPOS){ 
-            parceTagContent(result,*closeChar, *closeTagPos);
+            parceTagContent(result,*closeChar, *closeTagPos - 1);
         }
         delete closeTagPos;
     }
@@ -115,30 +118,12 @@ int SXML::XML::findTAG(std::string tagName, attribTAG _attrib){
     attribTAG atrs;
     bool _attrPassed = false;
     while(!_attrPassed){
-        result = source.find("<" + tagName, result + 1);
-        closeChar = source.find_first_of(">", result) + 1;
-        while( TAGname(content(source, result, closeChar)) != tagName ){
-            if(result == _NPOS || closeChar == _NPOS){
-                throw "tag not found";
-            }
-            result = source.find("<" + tagName, result + 1);
-            closeChar = source.find_first_of(">", result + 1);
+        setRange(tagName, result, closeChar);
+        if(result == _NPOS || closeChar == _NPOS){
+            throw "tag not found";
         }
         atrs = attrib(content(source, result, closeChar));
-        if(atrs.size() < _attrib.size()){
-            if(_attrib.begin()->first == "" && _attrib.begin()->second == "" && _attrib.size() == 1){
-                _attrPassed = true;
-            }
-            continue;
-        }
-        for(auto itr = _attrib.begin(); itr != _attrib.end(); itr++ ){
-            if(atrs[itr->first] == itr->second){
-                _attrPassed = true;
-            }
-            else{
-                _attrPassed = false;
-            }
-        }
+        _attrPassed = compareTagAttrs(atrs, _attrib);
     }
     return result;
 }
@@ -166,14 +151,54 @@ SXML::TAGArray SXML::XML::select(std::string tagName){
     return result;
 }
 
-int SXML::XML::count(std::string tagName, attribTAG _attrib = {{"", ""}}){
-    int result = 0;
-    
+int SXML::XML::count(std::string tagName, attribTAG _attrib){
+    int result = 0;       // count 
+    size_t _beginPos = 0; // start position 
+    size_t _endPos = 0;   // end position
+    attribTAG atrs;
+    bool _attrPassed = false;
+    while(_beginPos != _NPOS && _endPos != _NPOS){
+        setRange(tagName, _beginPos, _endPos);
+        if(_beginPos == _NPOS || _endPos == _NPOS){
+            break;
+        }
+        atrs = attrib(content(source, _beginPos, _endPos));
+        _attrPassed = compareTagAttrs(atrs, _attrib);
+        if(_attrPassed){
+            result++;
+        }
+    }
     return result;
 }
 
-std::string SXML::content(std::string _src, int _posStart, int _posEnd){
-    return _src.substr(_posStart, _posEnd - _posStart + 1);
+bool SXML::XML::compareTagAttrs(attribTAG _attrsA, attribTAG _attrsB){
+    if(_attrsA.size() < _attrsB.size()){
+        if(_attrsB.begin()->first == "" && _attrsB.begin()->second == "" && _attrsB.size() == 1){
+            return true;
+        }
+        return false;
+    }
+    for(auto itr = _attrsB.begin(); itr != _attrsB.end(); itr++ ){
+        if(_attrsA[itr->first] == itr->second){
+            continue;
+        }
+        else{
+            return false;
+        }
+    }
+    return true;
+}
+
+void SXML::XML::setRange(std::string _name, size_t & _begin, size_t & _end){
+    _begin = source.find("<" + _name, _begin + 1);
+    _end = source.find_first_of(">", _begin);
+    while(_begin != _NPOS && _end != _NPOS){
+        if((TAGname(content(source, _begin, _end)) == _name)){
+            break;
+        }
+        _begin = source.find("<" + _name, _begin + 1);
+        _end = source.find_first_of(">", _begin);
+    }
 }
 
 void SXML::XML::parceTagAttrs(TAG & _tag, int _start, int _end){
@@ -228,6 +253,10 @@ SXML::TAG SXML::XML::root(){
     delete end;
     delete temp;
     return result;
+}
+
+std::string SXML::content(std::string _src, int _posStart, int _posEnd){
+    return _src.substr(_posStart, _posEnd - _posStart + 1);
 }
 
 int SXML::writeXML(std::string fileName,TAG root,std::string version, std::string enc){

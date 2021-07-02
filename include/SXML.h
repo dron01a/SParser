@@ -61,7 +61,10 @@ namespace SXML{
     private:
 
         // return true if content in attrsA == _attrsB
-        bool comapreTagAttrs(attribTAG _attrsA, attribTAG _attrsB); 
+        bool compareTagAttrs(attribTAG _attrsA, attribTAG _attrsB); 
+
+        // found start and end position of string with tag
+        void setRange(std::string _name, size_t & _begin, size_t & _end);
 
         // find tag in XML
         int findTAG(std::string tagName, attribTAG _attrib = {{"", ""}});
