@@ -190,7 +190,7 @@ bool SXML::XML::compareTagAttrs(attribTAG _attrsA, attribTAG _attrsB){
 }
 
 void SXML::XML::setRange(std::string _name, size_t & _begin, size_t & _end){
-    _begin = source.find("<" + _name, _begin + 1);
+    _begin = source.find("<" + _name, (_begin == 0) ? 0 : _begin + 1);
     _end = source.find_first_of(">", _begin);
     while(_begin != _NPOS && _end != _NPOS){
         if((TAGname(content(source, _begin, _end)) == _name)){
@@ -253,6 +253,39 @@ SXML::TAG SXML::XML::root(){
     delete end;
     delete temp;
     return result;
+}
+
+std::string SXML::XML::encoding(){
+    size_t firstIndex = source.find("<?"); // positions with data of encoding and XML version
+    size_t secondIndex = source.find("?>");
+    if( firstIndex == _NPOS || secondIndex == _NPOS ){
+        return S_ENC;
+    }
+    WPTool::string_content info(content(source,firstIndex + 1, secondIndex - 1), " \t\n=");
+    return info[info.find("encoding") + 1];
+}
+
+std::string SXML::XML::version(){
+    size_t firstIndex = source.find("<?"); // positions with data of encoding and XML version
+    size_t secondIndex = source.find("?>");
+    if( firstIndex == _NPOS || secondIndex == _NPOS ){
+        return S_VER;
+    }
+    WPTool::string_content info(content(source,firstIndex + 1, secondIndex - 1), " \t\n=");
+    return info[info.find("version") + 1];
+}
+
+SXML::XMLfree::XMLfree(std::string _src){
+    XML parcer(_src);
+    this->root = parcer.root();
+    this->enc = parcer.encoding();
+    this->ver = parcer.version();
+}
+
+SXML::XMLfree::XMLfree(XML _XML){
+    this->root = _XML.root();
+    this->enc = _XML.encoding();
+    this->ver = _XML.version();
 }
 
 std::string SXML::content(std::string _src, int _posStart, int _posEnd){

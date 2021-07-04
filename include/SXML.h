@@ -10,6 +10,9 @@
 
 #define _NPOS std::string::npos
 
+#define S_VER "1.0" // standart version of XML 
+#define S_ENC "utf-8" // standart encoding of XML 
+
 namespace SXML{ 
 
     enum _tokenType{
@@ -56,6 +59,12 @@ namespace SXML{
         // return count of tags with the same attributes
         int count(std::string tagName, attribTAG _attrib = {{"", ""}});
 
+        // return encoding of XML
+        std::string encoding();
+
+        // return version of XML
+        std::string version();
+
         // return root tag 
         TAG root(); 
     private:
@@ -86,13 +95,30 @@ namespace SXML{
         std::string source; // string with XML
     };
 
+    // class fot work with XMLDom 
+    class XMLfree{
+    public:
+
+        // class constructors
+        XMLfree(std::string source); 
+        XMLfree(XML _XML);
+        
+        // XML version 
+        std::string ver;
+        
+        // XML encoding 
+        std::string enc;
+
+        TAG root; // root tag
+    };
+
     // convert tag to string
     static std::string convertTagAttr(TAG _tag);
     static std::string convertTAG(int & lvl, TAG _tag);
     std::string convertTAG(TAG _tag); 
 
     // write XML free to file  
-    int writeXML(std::string fileName,TAG root, std::string version = "1.0" , std::string enc = "utf-8");
+    int writeXML(std::string fileName,TAG root, std::string version = S_VER, std::string enc = S_ENC);
 }
  
 
