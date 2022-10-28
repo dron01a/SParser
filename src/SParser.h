@@ -46,7 +46,12 @@ namespace sp {
         tag_array h5();
         tag_array h6();
     };
-    
+
+    HTML_tree get_HTML_tree(std::string _source); 
+
+    std::string transform_HTML_to_string(HTML_tree & _tree);
+
+    std::string transform_tag(sp::tag _tag);
 };
 
 #endif

@@ -69,3 +69,39 @@ sp::tag_array sp::HTML_tree::h5(){
 sp::tag_array sp::HTML_tree::h6(){
     return select("h6");
 }
+
+sp::HTML_tree sp::get_HTML_tree(std::string _source){
+    sp::small_parser _parser(_source);
+    return sp::HTML_tree(_parser.get_tag("html"));
+}
+
+std::string sp::transform_HTML_to_string(HTML_tree & _tree){
+    std::string result = "<!DOCTYPE html>"; 
+    result+=transform_tag(_tree.root());
+    return result;
+}
+
+std::string sp::transform_tag(sp::tag _tag){
+    std::string result = "<" + _tag.name;
+    if(_tag.attrib.size() != 0){
+        for(sp::attrib_tag::iterator it = _tag.attrib.begin(); it != _tag.attrib.end(); it++){
+            result += " " + it->first + "=\"" + it->second +"\""; // add tag attrib`s to string
+        }
+    }
+    if(_tag.type == sp::_close_tag){
+        result += "/>";
+    }
+    else{
+        result += ">";
+        if(!_tag.text.empty()){
+            result+= _tag.text;
+        }
+        if(_tag.type == sp::_tag){
+            for(sp::tl_it it = _tag.subTAGs.begin(); it != _tag.subTAGs.end(); it++){
+                result+=transform_tag(it->second);
+            }
+        }
+        result += "</" + _tag.name + ">";
+    }   
+    return result; 
+}
