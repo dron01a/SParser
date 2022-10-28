@@ -49,3 +49,21 @@ std::string sp::name(std::string src){
     }
     return content(src, open_char + 1, close_char -1);
 }
+
+bool sp::comp_attr(attrib_tag & _attrsA, attrib_tag & _attrsB){
+    if(_attrsA.size() < _attrsB.size()){
+        if(_attrsB.begin()->first == "" && _attrsB.begin()->second == "" && _attrsB.size() == 1){
+            return true;
+        }
+        return false;
+    }
+    for(auto itr = _attrsB.begin(); itr != _attrsB.end(); itr++ ){
+        if(_attrsA[itr->first] == itr->second){
+            continue;
+        }
+        else{
+            return false;
+        }
+    }
+    return true;
+}

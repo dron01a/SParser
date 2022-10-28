@@ -95,14 +95,6 @@ namespace sp {
             param 1: currient position
         */
         tag get_next_tag(int & position); 
-    
-    protected:
-        /*
-            return true if content in attrsA == _attrsB
-            param 1: _attribA - tag A attributes
-            param 2: _attribB - tag B attributes
-        */
-        bool comp_attr(attrib_tag & _attrsA, attrib_tag & _attrsB);
     };
 
     /*

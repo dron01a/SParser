@@ -38,6 +38,12 @@ namespace sp {
     */
     std::string content(std::string _src, int _posStart, int _posEnd ); 
 
+    /*
+        return true if content in attrsA == _attrsB
+        param 1: _attribA - tag A attributes
+        param 2: _attribB - tag B attributes
+    */
+    bool comp_attr(attrib_tag & _attrsA, attrib_tag & _attrsB);
 };
 
 #endif

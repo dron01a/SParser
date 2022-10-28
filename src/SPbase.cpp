@@ -70,24 +70,6 @@ size_t sp::small_parser::find_tag(std::string name, attrib_tag _attrib){
     return result;
 }
 
-bool sp::small_parser::comp_attr(attrib_tag & _attrsA, attrib_tag & _attrsB){
-    if(_attrsA.size() < _attrsB.size()){
-        if(_attrsB.begin()->first == "" && _attrsB.begin()->second == "" && _attrsB.size() == 1){
-            return true;
-        }
-        return false;
-    }
-    for(auto itr = _attrsB.begin(); itr != _attrsB.end(); itr++ ){
-        if(_attrsA[itr->first] == itr->second){
-            continue;
-        }
-        else{
-            return false;
-        }
-    }
-    return true;
-}
-
 void sp::small_parser::set_range(std::string _name, size_t & _begin, size_t & _end){
     _begin = source->find("<" + _name, (_begin == 0) ? 0 : _begin + 1); // begin position 
     _end = source->find_first_of(">", _begin);
@@ -124,7 +106,7 @@ void sp::small_parser::parse_tag_content(tag & _tag, size_t _start, size_t _end)
     delete tag_content;
 }
 
-int sp::small_parser::count(std::string name, attrib_tag _attrib = {{"", ""}}){
+int sp::small_parser::count(std::string name, attrib_tag _attrib){
     int result = 0;       // count 
     size_t begin_pos = 0; // start position 
     size_t end_pos = 0;   // end position

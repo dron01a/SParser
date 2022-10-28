@@ -9,15 +9,17 @@ namespace sp {
 
     struct base_free{
     protected:
-    //    virtual tag tag(std::string name, attrib_tag _attrib = {{"", ""}}) = 0;
-        tag root;
+        tag _root;
     };
 
-    class small_free : protected base_free , protected small_parser{
+    class small_free : protected base_free {
     public:
-        tl_it get_tag(std::string name, attrib_tag _attrib = {{"", ""}});
+        small_free(tag _root) { this->_root = _root;} ;
+        tag & get_tag(std::string name, attrib_tag _attrib = {{"", ""}});
+        tag_array select(std::string name, attrib_tag _attrib = {{"", ""}});
+        tag & root() { return _root; }
     private:
-        tl_it get_tag(tl_it & _tag, std::string name, attrib_tag _attrib = {{"", ""}});
+        tag & get_tag(tag & _tag, std::string name, attrib_tag _attrib = {{"", ""}});
     };
 
 
@@ -31,17 +33,20 @@ namespace sp {
     };
 
 
-    class HTML_tree : small_free{
-        // tag 
-     //   tag & body();
-
-     //   tag & title();
-
-     //   tag & head();
-
-
+    class HTML_tree : public small_free{
+    public:
+        HTML_tree(tag _tag) : small_free(_tag) {};
+        tag & body();
+        tag & title();
+        tag & head();
+        tag & h1();
+        tag_array h2();
+        tag_array h3();
+        tag_array h4();
+        tag_array h5();
+        tag_array h6();
     };
-
+    
 };
 
 #endif

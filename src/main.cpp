@@ -1,13 +1,16 @@
 #include "SPtools.h"
 #include "SPbase.h"
+#include "SParser.h"
 #include <iostream>
 
 int main(){
-    std::string src = "<A>text Text text</A> <b>44</b> <A>78</A>";
+    std::string src = "<root><A>text Text text</A> <b><ff>78</ff><A><A>718</A><A>718</A></A></b> </root>";
     sp::small_parser p(src);
     
     
-    sp::tag_array _a = p.select("A");
-    std::cout << _a[1].text << std::endl;
+    sp::tag _a = p.get_tag("root");
+    sp::small_free _f(_a);
+    std::cout << _f.select("A").size() << std::endl;
+//
     return 0;
 }
