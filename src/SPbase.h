@@ -32,6 +32,12 @@ namespace sp {
         */
         small_parser(std::string _src) { source = new std::string(_src); };
 
+        /**
+         * class destructor 
+         * 
+        */
+        ~small_parser() { delete source; }
+
         /*
             get tag for name, attribute, value
             param 1: name - name of tag 

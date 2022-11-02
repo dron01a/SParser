@@ -23,13 +23,16 @@ namespace sp {
     };
 
 
-    class XML_tree : small_free{
+    class XML_tree : public small_free{
+    public:
+        XML_tree(tag _tag) : small_free(_tag) {};
+        std::string & version();
+        std::string & encoding();
+    private:
         // XML version 
-       // std::string ver;
-  //      
-       // // XML encoding 
-  //      std::string enc;
-//
+        std::string ver;      
+        // XML encoding 
+        std::string enc;
     };
 
 
@@ -48,6 +51,9 @@ namespace sp {
     };
 
     HTML_tree get_HTML_tree(std::string _source); 
+
+    XML_tree get_XML_tree(std::string _source);
+
 
     std::string transform_HTML_to_string(HTML_tree & _tree);
 

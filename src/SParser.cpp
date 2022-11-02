@@ -70,6 +70,39 @@ sp::tag_array sp::HTML_tree::h6(){
     return select("h6");
 }
 
+std::string & sp::XML_tree::version(){
+    return ver;
+}
+
+std::string & sp::XML_tree::encoding(){
+    return enc;
+}
+
+sp::XML_tree sp::get_XML_tree(std::string _source){ 
+    size_t * first = new size_t(_source.find("<?"));
+    size_t * last = new size_t(_source.find("?>"));
+    sp::tag _root;
+    sp::attrib_tag _atrs;
+    if(*first != _NPOS && *last != _NPOS){
+        std::string * temp = new std::string(sp::content(_source, * first, * last + 1));
+        _atrs = attrib(*temp);
+        delete temp;
+        std::string root_tag_name = sp::name(sp::content(_source, *last + 1 , _source.size() -1));
+        sp::small_parser _parser(sp::content(_source, *last + 1 , _source.size() -1));
+        _root = _parser.get_tag(root_tag_name); 
+    }
+    else{
+        throw 0; 
+    }
+    XML_tree _result(_root); 
+    _result.version() = _atrs["version"];
+    _result.encoding() = _atrs["encoding"];
+    delete first;
+    delete last;
+    return _result;
+}
+
+
 sp::HTML_tree sp::get_HTML_tree(std::string _source){
     sp::small_parser _parser(_source);
     return sp::HTML_tree(_parser.get_tag("html"));

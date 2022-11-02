@@ -4,7 +4,9 @@
 #include <iostream>
 
 int main(){
-    std::string src = "<root>"
+    std::string src =
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" 
+                    "<root>"
                         "<A>text Text text</A>" 
                         "<b>"
                             "<ff>78</ff>"
@@ -17,7 +19,7 @@ int main(){
     
     sp::tag _a = p.get_tag("root");
     sp::small_free _f(_a);
-    std::cout << sp::transform_tag(_a) << std::endl;
-//
+    //std::cout << sp::transform_tag(_a) << std::endl;
+    sp::get_XML_tree(src); 
     return 0;
 }
