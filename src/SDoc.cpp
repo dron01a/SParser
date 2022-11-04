@@ -35,8 +35,8 @@ std::string sp::transform_HTML_to_string(HTML_tree & _tree){
     return result;
 }
 
-std::string sp::transform_XML_to_string(sp::HTML_tree & _tree, std::string encoding, std::string version){
-    std::string result = "<&xml version=\"" + version + "\" encoding=\"" + encoding + "\" ?>"; 
+std::string sp::transform_XML_to_string(sp::XML_tree & _tree){
+    std::string result = "<?xml version=\"" + _tree.version() + "\" encoding=\"" + _tree.encoding() + "\" ?>"; 
     result += transform_tag(_tree.root());
     return result;
 }

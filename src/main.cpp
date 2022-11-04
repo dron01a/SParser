@@ -20,6 +20,6 @@ int main(){
     sp::tag _a = p.get_tag("root");
     sp::small_free _f(_a);
     //std::cout << sp::transform_tag(_a) << std::endl;
-    sp::get_XML_tree(src); 
+    //sp::get_XML_tree(src); 
     return 0;
 }

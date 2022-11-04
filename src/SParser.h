@@ -14,9 +14,28 @@ namespace sp {
 
     class small_free : protected base_free {
     public:
+        /**
+         * class constructor 
+         * 
+         * @param _root: root tag of free  
+         * 
+        */
         small_free(tag _root) { this->_root = _root;} ;
+        /**
+         *  get tag for name, attribute, value
+         *  @param name - name of tag 
+         *  @param _attrib - tag attributes
+        */
         tag & get_tag(std::string name, attrib_tag _attrib = {{"", ""}});
+        /**
+         *  get array of tag for same names 
+         *  @param name - name of tag 
+         *  @param _attrib - tag attributes
+        */
         tag_array select(std::string name, attrib_tag _attrib = {{"", ""}});
+        /**
+         * return root tag 
+        */
         tag & root() { return _root; }
     private:
         tag & get_tag(tag & _tag, std::string name, attrib_tag _attrib = {{"", ""}});
@@ -26,7 +45,13 @@ namespace sp {
     class XML_tree : public small_free{
     public:
         XML_tree(tag _tag) : small_free(_tag) {};
+        /**
+         *  return version 
+        */    
         std::string & version();
+        /**
+         *  return encoding
+        */  
         std::string & encoding();
     private:
         // XML version 
@@ -49,16 +74,6 @@ namespace sp {
         tag_array h5();
         tag_array h6();
     };
-
-    HTML_tree get_HTML_tree(std::string _source); 
-
-    XML_tree get_XML_tree(std::string _source);
-
-    std::string transform_HTML_to_string(HTML_tree & _tree);
-
-    std::string transform_XML_to_string(HTML_tree & _tree, std::string encoding, std::string version);
-
-    std::string transform_tag(sp::tag _tag);
 };
 
 #endif

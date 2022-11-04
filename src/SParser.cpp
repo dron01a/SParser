@@ -78,3 +78,4 @@ std::string & sp::XML_tree::encoding(){
     return enc;
 }
 
+ 
