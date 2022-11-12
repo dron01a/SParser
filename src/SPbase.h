@@ -24,83 +24,40 @@ namespace sp {
         _type type;  // type of tag 
     };
 
-    class small_parser{
-    public:
-        /*
-            class constructor 
-            param 1: _src -> string with XML/HTML text
-        */
-        small_parser(std::string _src) { source = new std::string(_src); };
-        
-        /**
-         * class destructor 
-         * 
-        */
-        ~small_parser() { delete source; }
-        
-        /**
-         *  get tag for name, attribute, value
-         *  @param name - name of tag 
-         *  @param _attrib - tag attributes
-        */
-        tag get_tag(std::string name, attrib_tag _attrib = {{"", ""}}); 
-        
-        /**
-         *  get array of tag for same names 
-         *  @param name - name of tag 
-        */
-        tag_array select(std::string name);
-        
-        /**
-         * return count of tags
-         * param 1: name - name of tag 
-        */
-        int count(std::string name, attrib_tag _attrib = {{"", ""}});
+    typedef std::map<std::string, std::string> attrib_tag;
 
-    private:
+    /*    
+        return text of HTML/XML element
+        param 1: _src -> string with XML/HTML text
+    */
+    std::string name(std::string _src); 
+    
+    /*    
+        return text of HTML/XML element
+        param 1: _src -> string with XML/HTML text
+    */
+    attrib_tag attrib(std::string _src);
+    
+    /*    
+        return text of HTML/XML element
+        param 1: _src -> string with XML/HTML text
+    */
+    std::string text(std::string _src);
 
-        // string with code 
-        std::string *source;
+    /* 
+        return content in string( _src ) between positions _posStart and _posEnd 
+        param 1: _src -> string with text
+        param 2: _posStart -> start position
+        param 3: _posEnd -> end position
+    */
+    std::string content(std::string _src, int _posStart, int _posEnd ); 
 
-        /**
-         *  parse content in tag, set child tag`s and text
-         * @param _tag -> tag for setting values
-         * @param _start -> start position
-         * @param _end -> end position
-        */
-        void parse_tag_content( tag & _tag, size_t _start, size_t _end);
- 
-        /**
-         * find tag in XML
-         * return tag position
-         * @param name - name of tag 
-         * @param _attrib - tag attributes
-        */
-        size_t find_tag(std::string name, attrib_tag _attrib = {{"", ""}});
-
-        /**
-         * parse content in tag, set child tag`s and text
-         * @param _tag -> tag for setting values
-         * @param _start -> start position
-         * @param _end -> end position
-        */
-        void set_tag_attrs(tag & _tag, size_t _start, size_t _end);
-
-        /**
-         *  found start and end position of string with tag
-         *  @param name - name of tag 
-         *  @param _start -> start position
-         *  @param _end -> end position
-        */
-        void set_range(std::string _name, size_t & _start, size_t & _end);\
-        
-
-        /**
-         *  get next tag in string
-         *  @param currient position
-        */
-        tag get_next_tag(int & position); 
-    };
+    /*
+        return true if content in attrsA == _attrsB
+        param 1: _attribA - tag A attributes
+        param 2: _attribB - tag B attributes
+    */
+    bool comp_attr(attrib_tag & _attrsA, attrib_tag & _attrsB);
 
     /**
      *  return type of token
