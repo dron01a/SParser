@@ -1,6 +1,7 @@
-#include "SPtools.h"
+//#include "SPtools.h"
 #include "SPbase.h"
 #include "SParser.h"
+#include "SDoc.h"
 #include <iostream>
 
 int main(){
@@ -19,7 +20,9 @@ int main(){
     
     sp::tag _a = p.get_tag("root");
     sp::small_free _f(_a);
-    //std::cout << sp::transform_tag(_a) << std::endl;
+    std::string s = transform_tag(_a);
+    sp::format(s);
+    std::cout << s << std::endl;
     //sp::get_XML_tree(src); 
     return 0;
 }

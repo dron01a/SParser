@@ -42,7 +42,7 @@ std::string sp::transform_XML_to_string(sp::XML_tree & _tree){
 }
 
 
-std::string sp::transform_tag(sp::tag _tag){
+std::string sp::transform_tag(sp::tag & _tag){
     std::string result = "<" + _tag.name;
     if(_tag.attrib.size() != 0){
         for(sp::attrib_tag::iterator it = _tag.attrib.begin(); it != _tag.attrib.end(); it++){
@@ -67,4 +67,25 @@ std::string sp::transform_tag(sp::tag _tag){
     return result; 
 }
 
-
+std::string sp::format(std::string & source){
+    size_t level = 1;
+    for(size_t i = 0; i != source.size(); i++){
+        switch (source[i]){
+        case '>':
+            source.insert(i+1,level,'\t');
+            source.insert(i+1,1,'\n');
+            level++;
+            break;
+        case '<':
+            if(source[i+1] == '/'){
+                level-=2;
+                source.insert(i,level,'\t');
+                source.insert(i,1,'\n');
+                i+=level+1;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+}

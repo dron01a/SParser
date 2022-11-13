@@ -1,12 +1,18 @@
 #ifndef __SPPBASE__H__
 #define __SPPBASE__H__
 
-#include "SPtools.h"
+#include <map>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#define _NPOS std::string::npos 
 
 namespace sp {
 
     struct tag; // declaration struct with tag information-
 
+    typedef std::map<std::string, std::string> attrib_tag;
     typedef std::multimap<std::string, tag> tag_list;
     typedef std::vector<tag> tag_array;
 

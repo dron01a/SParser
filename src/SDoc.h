@@ -49,8 +49,16 @@ namespace sp{
      * @param _tag - object 
      * 
     */
-    std::string transform_tag(sp::tag _tag);
-
+    std::string transform_tag(sp::tag & _tag);
+    
+    /**
+     * 
+     * return a formatted string
+     * 
+     * @param source - string with HTML/XML text  
+     * 
+    */
+    std::string format(std::string & source); 
 };
 
 #endif 
