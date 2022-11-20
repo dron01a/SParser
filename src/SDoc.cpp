@@ -1,5 +1,6 @@
 #include "SDoc.h"
 
+
 sp::XML_tree sp::get_XML_tree(std::string _source){ 
     size_t * first = new size_t(_source.find("<?"));
     size_t * last = new size_t(_source.find("?>"));
