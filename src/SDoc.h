@@ -4,8 +4,19 @@
 #include "SPbase.h"
 #include "SParser.h"
 
+#ifdef __FSTOOL__H__
+    #include "FSTool/FSTool.h"
+#else
+    #include <fstream>
+#endif
+
 namespace sp{
     
+    enum md_type{
+        HTML,
+        XML
+    };
+
     /**
      * 
      * return HTML_free from string 
@@ -58,7 +69,34 @@ namespace sp{
      * @param source - string with HTML/XML text  
      * 
     */
-    std::string format(std::string & source); 
+    std::string format(std::string & source);
+
+    /**
+     * 
+     * load XML tree from file 
+     * 
+     * @param file_name name of file 
+    */ 
+    XML_tree load_XML_from_file(std::string file_name);
+
+    /**
+     * 
+     * load HTML tree from file 
+     * 
+     * @param file_name name of file 
+    */ 
+    HTML_tree load_HTML_from_file(std::string file_name);
+    
+    /**
+     * 
+     * load tree from file
+     * 
+     * @param tree pointer to base class of tree
+     * @param file_name name of file 
+     * @param type tipe of tree
+     * 
+    */
+    void load_from_file(small_free * tree,std::string file_name,md_type type);
 };
 
 #endif 

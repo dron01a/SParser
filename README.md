@@ -25,7 +25,7 @@ SParser - Small Parser.
 #include <iostream>
 
 int main(){
-    SP::HTML_three _t = load_from_file("test.html","HTML");
+    SP::HTML_tree _t = load_HTML_from_file("test.html");
 
     std::cout << _t.get_tag("one",{{"num","dva"}}) << std::endl;
 

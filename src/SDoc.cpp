@@ -90,3 +90,49 @@ std::string sp::format(std::string & source){
         }
     }
 }
+
+sp::XML_tree sp::load_XML_from_file(std::string file_name){
+    std::string source; 
+#ifdef __FSTOOL__H__
+    FSTool::file * source_file = open(file_name,FSTool::BINARY);
+    source = file->buff();
+    delete source_file; 
+#else
+    std::ifstream f(file_name);
+    f.seekg(0, std::ios::end);
+    size_t size = f.tellg();
+    source.resize(size);
+    f.seekg(0);
+    f.read(&source[0], size);
+#endif
+    return sp::get_XML_tree(source);
+}
+
+sp::HTML_tree sp::load_HTML_from_file(std::string file_name){
+    std::string source; 
+#ifdef __FSTOOL__H__
+    FSTool::file * source_file = open(file_name,FSTool::BINARY);
+    source = file->buff();
+    delete source_file; 
+#else
+    std::ifstream f(file_name);
+    f.seekg(0, std::ios::end);
+    size_t size = f.tellg();
+    source.resize(size);
+    f.seekg(0);
+    f.read(&source[0], size);
+#endif
+    return sp::get_HTML_tree(source);
+}
+
+void sp::load_from_file(sp::small_free * tree,std::string file_name,md_type type){
+    if(type == sp::HTML){
+        tree = new sp::HTML_tree(sp::load_HTML_from_file(file_name));
+    }
+    else if(type == sp::XML){
+        tree = new sp::XML_tree(sp::load_XML_from_file(file_name));
+    }
+    else{
+        throw "error type";
+    }
+}
