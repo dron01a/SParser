@@ -86,7 +86,7 @@ namespace sp{
      * @param file_name name of file 
     */ 
     HTML_tree load_HTML_from_file(std::string file_name);
-    
+
     /**
      * 
      * load tree from file
@@ -97,6 +97,22 @@ namespace sp{
      * 
     */
     void load_from_file(small_free * tree,std::string file_name,md_type type);
+
+    /**
+     * load tree from file
+     * 
+     * @param tree - object 
+     * @param file_name name of file 
+    */
+    void load_HTML_to_file(HTML_tree & tree, std::string file_name);
+
+    /**
+     * load tree from file
+     * 
+     * @param tree - object 
+     * @param file_name name of file 
+    */
+    void load_XML_to_file(XML_tree & tree, std::string file_name);
 };
 
 #endif 

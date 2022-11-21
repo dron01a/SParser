@@ -136,3 +136,39 @@ void sp::load_from_file(sp::small_free * tree,std::string file_name,md_type type
         throw "error type";
     }
 }
+
+void sp::load_HTML_to_file(sp::HTML_tree & tree, std::string file_name){
+#ifdef __FSTOOL__H__
+    FSTool::file * source_file = open(file_name,FSTool::BINARY);
+    if(!source_file->exists()){
+        source_file->create();
+    }
+    if(!source_file->empty()){
+        source_file->clear();
+    }
+    source_file->write(transform_HTML_to_string(tree),0);
+    delete source_file;
+#else
+    std::ofstream f(file_name);
+    f << transform_HTML_to_string(tree);
+    f.close();
+#endif
+}
+
+void sp::load_HTML_to_file(sp::XML_tree & tree, std::string file_name){
+#ifdef __FSTOOL__H__
+    FSTool::file * source_file = open(file_name,FSTool::BINARY);
+    if(!source_file->exists()){
+        source_file->create();
+    }
+    if(!source_file->empty()){
+        source_file->clear();
+    }
+    source_file->write(transform_XML_to_string(tree),0);
+    delete source_file;
+#else
+    std::ofstream f(file_name);
+    f << transform_XML_to_string(tree);
+    f.close();
+#endif
+}
