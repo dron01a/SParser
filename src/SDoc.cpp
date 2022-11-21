@@ -155,7 +155,7 @@ void sp::load_HTML_to_file(sp::HTML_tree & tree, std::string file_name){
 #endif
 }
 
-void sp::load_HTML_to_file(sp::XML_tree & tree, std::string file_name){
+void sp::load_XML_to_file(sp::XML_tree & tree, std::string file_name){
 #ifdef __FSTOOL__H__
     FSTool::file * source_file = open(file_name,FSTool::BINARY);
     if(!source_file->exists()){
