@@ -140,18 +140,17 @@ sp::tag & sp::small_free::get_tag(std::string name, attrib_tag _attrib){
 }
 
 sp::tag & sp::small_free::get_tag(tag & _tag, std::string name, attrib_tag _attrib){
-    tag result;
     for(tl_it iter = _tag.subTAGs.begin(); iter != _tag.subTAGs.end() ; iter++){
         if(iter->first == name && comp_attr(iter->second.attrib,_attrib) == true){
-            result = iter->second;
+            return iter->second;
             break;
         }
-        result = get_tag(iter->second, name, _attrib);
-        if(result.name == name && comp_attr(result.attrib,_attrib) == true){
+        tag temp = get_tag(iter->second, name, _attrib);
+        if(temp.name == name && comp_attr(temp.attrib,_attrib) == true){
+            return get_tag(iter->second, name, _attrib);
             break;
         }
     }
-    return result;
 }
 
 sp::tag_array sp::small_free::select(std::string name, attrib_tag _attrib){

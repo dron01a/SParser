@@ -58,7 +58,10 @@ sp::attrib_tag sp::attrib(std::string src){
 
 std::string sp::name(std::string src){
     int open_char = src.find_first_of("<"); 
-    int close_char = src.find_first_of(">", open_char);
+    int close_char = src.find_first_of(" ", open_char);
+    if(close_char == _NPOS){
+        close_char = src.find_first_of(">", open_char);
+    }
     if(open_char == close_char || open_char == _NPOS || close_char == _NPOS){
         throw "error";
     }

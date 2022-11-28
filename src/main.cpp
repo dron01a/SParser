@@ -5,24 +5,12 @@
 #include <iostream>
 
 int main(){
-    std::string src =
-                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" 
-                    "<root>"
-                        "<A>text Text text</A>" 
-                        "<b>"
-                            "<ff>78</ff>"
-                            "<A>718</A>"
-                            "<A>718</A>"
-                        "</b> "
-                       "</root>";
-    sp::small_parser p(src);
     
-    
-    sp::tag _a = p.get_tag("root");
-    sp::small_free _f(_a);
-    std::string s = transform_tag(_a);
-    sp::format(s);
-    std::cout << s << std::endl;
-    //sp::get_XML_tree(src); 
+    sp::HTML_tree __d = sp::load_HTML_from_file("test.html");
+
+    __d.get_tag("img").attrib["src"] = "none";
+
+    std::cout << __d.body().subTAGs.begin()->second.attrib["src"] << std::endl; 
+
     return 0;
 }
