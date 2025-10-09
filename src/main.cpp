@@ -1,16 +1,13 @@
-//#include "SPtools.h"
-#include "SPbase.h"
-#include "SParser.h"
-#include "SDoc.h"
+#include "spxml.h"
 #include <iostream>
 
 int main(){
     
-    sp::HTML_tree __d = sp::load_HTML_from_file("test.html");
+	sp::string_t str = _t( "</name > " );
 
-    __d.get_tag("img").attrib["src"] = "none";
+	sp::string_reader r(str);
 
-    std::cout << __d.body().subTAGs.begin()->second.attrib["src"] << std::endl; 
+	sp::token t = r.get_next_token();
 
     return 0;
 }
