@@ -21,6 +21,7 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+sparser
 
 ### Windows ###
 # Windows thumbnail cache files
