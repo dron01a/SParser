@@ -27,6 +27,7 @@ namespace sp {
 		uncorrect_char_after_open_brt = 0, 
 		error_tag_name,
 		comment_error,
+		text_end_error,
 	};
 
 	enum class char_type {
@@ -56,6 +57,7 @@ namespace sp {
 		atribute_name,
 		atribute_value,
 		comment,
+		end_of_data
 	};
 
 	// структура получаемого символа
@@ -97,18 +99,24 @@ namespace sp {
 		// обработка открывающей скобки
 		void open_brt_proc();
 
+		// обработка открывающей скобки
+		void close_brt_proc();
+
 		// обработка имени тега
 		void name_proc();
 
 		// обрабока комментария 
 		void comment_proc();
+		
+		// обработка сущностей
+		void ent_proc();
 
 		// пропускает символы
 		void skip_chars(std::vector<sp::char_type> vect);
 
 		std::map<sp::char_t, sp::char_type> char_table; // таблица символов
-		std::map<sp::char_t, sp::string_t> ent_table; // таблица сущностей
-		xml_char last_char = { 0, sp::char_type::unknown }; // последний полученный сивол 
+		std::map<sp::string_t, sp::char_t > ent_table; // таблица сущностей
+		xml_char cur_char = { 0, sp::char_type::unknown }; // последний полученный сивол 
 		token last_token; // последний полученный токен
 	};
 

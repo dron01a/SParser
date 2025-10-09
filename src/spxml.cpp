@@ -26,17 +26,20 @@ sp::char_type sp::reader::get_char_type(sp::char_t ch){
 }
 
 sp::token sp::reader::get_next_token(){
-	if (last_char.data == 0) {
-		last_char = get_next_char();
+	if (cur_char.data == 0) {
+		cur_char = get_next_char();
 	}
-	switch (last_char.type){
+	last_token.data.clear();
+	switch (cur_char.type){
+	case sp::char_type::close_brt:
+		close_brt_proc();
+		break;
 	case sp::char_type::open_brt:
 		open_brt_proc();
 		break;
-	case sp::char_type::close_brt:
+	case sp::char_type::end:
+		last_token.type = sp::token_type::end_of_data;
 		break;
-
-	
 	default:
 		break;
 	}
@@ -60,22 +63,22 @@ void sp::reader::init_tables(){
 	char_table.insert({ _t('\r'), sp::char_type::next_line });
 	char_table.insert({ _t('/'), sp::char_type::slash });
 	char_table.insert({ _t('\0'), sp::char_type::end });
-	ent_table.insert({ _t('<'), _t("&lt;") });
-	ent_table.insert({ _t('>'), _t("&gt;") });
-	ent_table.insert({ _t('&'), _t("&amp;") });
-	ent_table.insert({ _t('\''), _t("&apos;") });
-	ent_table.insert({ _t('\"'), _t("&quot;") });
+	ent_table.insert({ _t("&lt"), _t('<') });
+	ent_table.insert({ _t("&gt"), _t('>') });
+	ent_table.insert({ _t("&amp"), _t('&') });
+	ent_table.insert({ _t("&apos"), _t('\'') });
+	ent_table.insert({ _t("&quot"), _t('\"') });
 }
 
 void sp::reader::open_brt_proc(){
-	last_char = get_next_char(); // получаем следующий сивол 
-	switch (last_char.type){
+	cur_char = get_next_char(); // получаем следующий сивол 
+	switch (cur_char.type){
 	case sp::char_type::simlpe_char:
 		name_proc();
 		last_token.type = sp::token_type::tag_name;
 		break;
 	case sp::char_type::slash:
-		last_char = get_next_char();
+		cur_char = get_next_char();
 		name_proc();
 		last_token.type = sp::token_type::tag_end;
 		break;
@@ -87,46 +90,81 @@ void sp::reader::open_brt_proc(){
 	}
 }
 
+void sp::reader::close_brt_proc(){
+	cur_char = get_next_char(); // получаем следующий сивол 
+	skip_chars({ sp::char_type::space, sp::char_type::next_line });
+	if (cur_char.type == sp::char_type::open_brt || cur_char.type == sp::char_type::end) {
+		last_token = get_next_token();
+	}
+	else {
+		while (cur_char.type != sp::char_type::open_brt) {
+			switch (cur_char.type){
+			case sp::char_type::ampers:
+				ent_proc();
+				break;
+			case sp::char_type::end:
+				throw sp::error_type::text_end_error;
+			default:
+				last_token.data += cur_char.data;
+			}
+			cur_char = get_next_char(); // получаем следующий сивол 
+		}
+		last_token.type = sp::token_type::tag_text;
+	}
+}
+
 void sp::reader::name_proc(){
-	while (last_char.type != sp::char_type::close_brt && last_char.type != sp::char_type::space) {
-		switch (last_char.type){
+	while (cur_char.type != sp::char_type::close_brt && cur_char.type != sp::char_type::space) {
+		switch (cur_char.type){
 		case sp::char_type::digit:
 		case sp::char_type::simlpe_char:
-			last_token.data += last_char.data; // добавляем символ к имени тега
+			last_token.data += cur_char.data; // добавляем символ к имени тега
 			break;
 		default:
 			throw sp::error_type::error_tag_name; // ошибка в имени тега
 		}
-		last_char = get_next_char(); // получаем следующий сивол 
+		cur_char = get_next_char(); // получаем следующий сивол 
 	}
 }
 
 void sp::reader::comment_proc(){
-	last_char = get_next_char(); // получаем следующий сивол 
-	if (last_char.data == _t('-')) {
-		last_char = get_next_char(); // получаем следующий сивол 
-		if (last_char.data == _t('-')) {
-			while(last_char.type != sp::char_type::end){
-				if (last_char.data == _t('-')) {
-					last_char = get_next_char(); // получаем следующий сивол 
-					if (last_char.data == _t('-')) {
-						last_char = get_next_char(); // получаем следующий сивол 
-						if (last_char.type == sp::char_type::close_brt) {
+	cur_char = get_next_char(); // получаем следующий сивол 
+	if (cur_char.data == _t('-')) {
+		cur_char = get_next_char(); // получаем следующий сивол 
+		if (cur_char.data == _t('-')) {
+			while(cur_char.type != sp::char_type::end){
+				if (cur_char.data == _t('-')) {
+					cur_char = get_next_char(); // получаем следующий сивол 
+					if (cur_char.data == _t('-')) {
+						cur_char = get_next_char(); // получаем следующий сивол 
+						if (cur_char.type == sp::char_type::close_brt) {
 							return;
 						}
 						break;
 					}
 				}
-				last_char = get_next_char(); // получаем следующий сивол 
+				cur_char = get_next_char(); // получаем следующий сивол 
 			}
 		}
 	}
 	throw sp::error_type::comment_error;
 }
 
+void sp::reader::ent_proc(){
+	sp::string_t temp; // строка в с сущностью
+	while (cur_char.type == sp::char_type::semicolon) {
+		temp += cur_char.data;
+		cur_char = get_next_char(); // получаем следующий сивол
+	}
+	if (ent_table.count(temp) != 0) {
+		last_token.data += ent_table[temp];
+	}
+	cur_char = get_next_char(); // получаем следующий сивол 
+}
+
 void sp::reader::skip_chars(std::vector<sp::char_type> vect){
-	while (std::count(vect.begin(), vect.end(), last_char.type) != 0) {
-		last_char = get_next_char(); // получаем следующий сивол 
+	while (std::count(vect.begin(), vect.end(), cur_char.type) != 0) {
+		cur_char = get_next_char(); // получаем следующий сивол 
 	}
 }
 
