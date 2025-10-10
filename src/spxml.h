@@ -39,6 +39,7 @@ namespace sp {
 		attribute_value_error,
 		unknown_ent, 
 		autoclose_tag_error,
+		error_value_type,
 	};
 
 	enum class char_type {
@@ -72,6 +73,12 @@ namespace sp {
 		atribute_value,
 		comment,
 		end_of_data
+	};
+
+	enum class value_type {
+		_string,
+		_double,
+		_bool
 	};
 
 	// структура получаемого символа
@@ -193,6 +200,43 @@ namespace sp {
 		bool good();
 	private:
 		sp::input_stream * stream; // поток с данными
+	};
+
+	// класс значеня атрибута или текста
+	class value {
+	public:
+		// конструктор класса
+		value();
+		value(const sp::char_t * data);
+		value(const sp::string_t & data);
+		value(sp::char_t data);
+		value(int data);
+		value(double data);
+		value(bool data);
+
+		// возвращает тип значения
+		sp::value_type type();
+		sp::value_type type() const;
+
+		// возвращает как строку
+		sp::string_t to_string();
+
+		// возвращает как целое число
+		int to_int();
+
+		// возвращает как число с плавющей точкой
+		double to_double();
+
+		// устанавливае значение
+		void set(const sp::char_t * data);
+		void set(const sp::string_t & data);
+		void set(sp::char_t data);
+		void set(int data);
+		void set(double data);
+		void set(bool data);
+	private:
+		sp::value_type _type = sp::value_type::_string; // тип значения
+		sp::string_t data; // данные
 	};
 
 };

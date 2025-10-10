@@ -1,5 +1,13 @@
 #include "spxml.h"
 
+bool is_digit(sp::string_t str) {
+	return str.find_first_not_of(_t("0123456789,.+-e")) != sp::string_t::npos;
+}
+
+bool is_bool(sp::string_t str) {
+	return str == _t("true") || str == _t("false");
+}
+
 sp::reader::reader(const sp::char_t * data){
 	init_tables();
 }
@@ -206,6 +214,7 @@ void sp::reader::attrib_val_proc(){
 		cur_char = get_next_char(); // получаем следующий сивол 
 	} 
 	cur_char = get_next_char(); // получаем следующий сивол
+	last_token.type = sp::token_type::atribute_value;
 }
 
 void sp::reader::ent_proc(){
@@ -292,4 +301,104 @@ sp::xml_char sp::stream_reader::get_next_char(){
 
 bool sp::stream_reader::good(){
 	return stream->good();
+}
+
+sp::value::value(){ }
+
+sp::value::value(const sp::char_t * data){
+	set(data);
+}
+
+sp::value::value(const sp::string_t & data){
+	set(data);
+}
+
+sp::value::value(sp::char_t data){
+	set(data);
+}
+
+sp::value::value(int data){
+	set(data);
+}
+
+sp::value::value(double data){
+	set(data);
+}
+
+sp::value::value(bool data){
+	set(data);
+}
+
+sp::value_type sp::value::type(){
+	return _type;
+}
+
+sp::value_type sp::value::type() const {
+	return _type;
+}
+
+sp::string_t sp::value::to_string(){
+	return data;
+}
+
+int sp::value::to_int(){
+	if (_type == sp::value_type::_double) {
+		return std::stoi(data);
+	}
+	throw sp::error_type::error_value_type;
+}
+
+double sp::value::to_double(){
+	if (_type == sp::value_type::_double) {
+		return std::stod(data);
+	}
+	throw sp::error_type::error_value_type;
+}
+
+void sp::value::set(const sp::char_t * data){
+	if (is_digit(data)) {
+		_type = sp::value_type::_double;
+	}
+	if (is_bool(data)) {
+		_type = sp::value_type::_bool;
+	}
+	this->data = data;
+}
+
+void sp::value::set(const sp::string_t & data) {
+	if (is_digit(data)) {
+		_type = sp::value_type::_double;
+	}
+	this->data = data;
+}
+
+void sp::value::set(sp::char_t data){
+	this->data = sp::string_t(data, 1);
+}
+
+void sp::value::set(int data){
+	_type = sp::value_type::_double;
+#ifdef  SPW_MODE
+	this->data = std::to_wstring(data);
+#else
+	this->data = std::to_string(data);
+#endif 
+}
+
+void sp::value::set(double data){
+	_type = sp::value_type::_double;
+#ifdef  SPW_MODE
+	this->data = std::to_wstring(data);
+#else
+	this->data = std::to_string(data);
+#endif 
+}
+
+void sp::value::set(bool data) {
+	_type = sp::value_type::_bool;
+#ifdef  SPW_MODE
+	this->data = std::to_wstring(data);
+#else
+	this->data = std::to_string(data);
+#endif 
 }
