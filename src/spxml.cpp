@@ -244,3 +244,52 @@ sp::xml_char sp::string_reader::get_next_char(){
 	}
 	return{ c, get_char_type(c) };
 }
+
+bool sp::string_reader::good(){
+	return !data.empty();
+}
+
+sp::file_reader::file_reader(const sp::char_t * file_name) : reader(file_name){
+	file.open(file_name, std::ios::binary | std::ios::in );
+}
+
+sp::file_reader::file_reader(const sp::string_t & file_name) : reader(file_name){
+	file.open(file_name, std::ios::binary | std::ios::in);
+}
+
+sp::file_reader::~file_reader(){
+	file.close();
+}
+
+sp::xml_char sp::file_reader::get_next_char(){
+	sp::char_t c = file.get();
+	if (file.eof()) {
+		c = '\0';
+	}
+	return{ c, get_char_type(c) };
+}
+
+bool sp::file_reader::good(){
+	return file.good();
+}
+
+sp::stream_reader::stream_reader(sp::input_stream & data) : reader(data) {
+	stream = &data;
+}
+
+sp::stream_reader::~stream_reader(){
+	stream = nullptr;
+	delete stream;
+}
+
+sp::xml_char sp::stream_reader::get_next_char(){
+	sp::char_t c = stream->get();
+	if (stream->eof()) {
+		c = '\0';
+	}
+	return{ c, get_char_type(c) };
+}
+
+bool sp::stream_reader::good(){
+	return stream->good();
+}

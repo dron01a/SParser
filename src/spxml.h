@@ -13,13 +13,17 @@ namespace sp {
 	typedef wchar_t char_t;
 	typedef std::wstring string_t;
 	typedef std::wistream input_stream; 
-	typedef std::wofstream output_stream;
+	typedef std::wostream output_stream;
+	typedef std::wifstream ifile;
+	typedef std::wofstream ofile;
 #define _t(c) L##c
 #else
 	typedef char char_t;
 	typedef std::string string_t;
 	typedef std::istream input_stream;
-	typedef std::ofstream output_stream;
+	typedef std::ostream output_stream;
+	typedef std::ifstream ifile;
+	typedef std::ofstream ofile;
 #define _t(c) c
 #endif
 
@@ -93,6 +97,9 @@ namespace sp {
 		// возвращает следующий сивол 
 		virtual sp::xml_char get_next_char() = 0;
 
+		// возвращает true если класс чтения готов к использованию
+		virtual bool good() = 0;
+
 		// возвращает тип символа
 		sp::char_type get_char_type(sp::char_t ch);
 
@@ -145,13 +152,49 @@ namespace sp {
 		// возвращает следующий сивол 
 		sp::xml_char get_next_char();
 
+		// возвращает true если класс чтения готов к использованию
+		bool good();
+
 	private:
 		sp::string_t data; // строка с XML
 		size_t position = 0; // позиция 
 	};
 
+	class file_reader : public sp::reader {
+	public:
+		// конструктор класса
+		file_reader(const sp::char_t * file_name);
+		file_reader(const sp::string_t & file_name);
+
+		// деструктор класса 
+		~file_reader();
+
+		// возвращает следующий сивол 
+		sp::xml_char get_next_char();
+
+		// возвращает true если класс чтения готов к использованию
+		bool good();
+	private:
+		sp::ifile file; // файл с данными
+	};
+
+	class stream_reader : public sp::reader {
+	public:
+		// конструктор класса
+		stream_reader(sp::input_stream & data);
+
+		// десруктор класса
+		~stream_reader();
+
+		// возвращает следующий сивол 
+		sp::xml_char get_next_char();
+
+		// возвращает true если класс чтения готов к использованию
+		bool good();
+	private:
+		sp::input_stream * stream; // поток с данными
+	};
+
 };
-
-
 
 #endif
