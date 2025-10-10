@@ -1,10 +1,11 @@
 #include "spxml.h"
 #include <iostream>
 
-int main(){
-   
+int main() {
 
-	sp::file_reader r(_t("test.xml"));
+	sp::string_t str = _t("<name a  = \" &apos;12&apos;&quot; \"><sub_name>text in sub_name &amp;</sub_name></name>");
+
+	sp::string_reader r(str);
 
 	std::vector<sp::token> vt;
 
@@ -14,8 +15,8 @@ int main(){
 		std::wcout << t.data << std::endl;
 		vt.push_back(t);
 		t = r.get_next_token();
-		
+
 	}
 
-    return 0;
+	return 0;
 }
