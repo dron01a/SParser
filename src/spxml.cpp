@@ -40,7 +40,17 @@ sp::token sp::reader::get_next_token(){
 	case sp::char_type::end:
 		last_token.type = sp::token_type::end_of_data;
 		break;
-	default:
+	case sp::char_type::space:
+		attrib_name_proc();
+		break;
+	case sp::char_type::eval:
+		attrib_val_proc();
+		break;
+	case sp::char_type::slash:
+		cur_char = get_next_char();
+		if (cur_char.type != sp::char_type::close_brt) {
+			throw sp::error_type::autoclose_tag_error;
+		}
 		break;
 	}
 	return last_token;
@@ -61,7 +71,10 @@ void sp::reader::init_tables(){
 	char_table.insert({ _t('\t'), sp::char_type::space });
 	char_table.insert({ _t('\n'), sp::char_type::next_line });
 	char_table.insert({ _t('\r'), sp::char_type::next_line });
+	char_table.insert({ _t('\"'), sp::char_type::quot});
+	char_table.insert({ _t('\''), sp::char_type::apos });
 	char_table.insert({ _t('/'), sp::char_type::slash });
+	char_table.insert({ _t('='), sp::char_type::eval });
 	char_table.insert({ _t('\0'), sp::char_type::end });
 	ent_table.insert({ _t("&lt"), _t('<') });
 	ent_table.insert({ _t("&gt"), _t('>') });
@@ -150,16 +163,61 @@ void sp::reader::comment_proc(){
 	throw sp::error_type::comment_error;
 }
 
+void sp::reader::attrib_name_proc(){
+	skip_chars({ sp::char_type::space });
+	while (cur_char.type != sp::char_type::eval && cur_char.type != sp::char_type::space) {
+		switch (cur_char.type){
+		case sp::char_type::simlpe_char:
+		case sp::char_type::digit:
+			last_token.data += cur_char.data;
+			break;
+		case sp::char_type::end:
+			throw sp::error_type::attrib_name_wrong;
+		default:
+			throw sp::error_type::atribute_name_error;
+		}
+		cur_char = get_next_char(); // получаем следующий сивол 
+	}
+	skip_chars({ sp::char_type::space });
+	last_token.type = sp::token_type::atribute_name;
+}
+
+void sp::reader::attrib_val_proc(){
+	cur_char = get_next_char(); // получаем следующий сивол 
+	skip_chars({ sp::char_type::space });
+	if (cur_char.type != sp::char_type::quot && cur_char.type != sp::char_type::apos) {
+		throw sp::error_type::attribute_value_exec_open_quot;
+	}
+	sp::char_type quot_t = cur_char.type;
+	cur_char = get_next_char(); // получаем следующий сивол 
+	while (cur_char.type != quot_t) {
+		switch (cur_char.type) {
+		case sp::char_type::quot:
+		case sp::char_type::apos:
+			throw sp::error_type::attribute_value_error;
+		case sp::char_type::ampers:
+			ent_proc();
+			break;
+		case sp::char_type::end:
+			throw sp::error_type::attribute_value_exec_close_quot;
+		default:
+			last_token.data += cur_char.data;
+		}
+		cur_char = get_next_char(); // получаем следующий сивол 
+	} 
+	cur_char = get_next_char(); // получаем следующий сивол
+}
+
 void sp::reader::ent_proc(){
 	sp::string_t temp; // строка в с сущностью
-	while (cur_char.type == sp::char_type::semicolon) {
+	while (cur_char.type != sp::char_type::semicolon) {
 		temp += cur_char.data;
 		cur_char = get_next_char(); // получаем следующий сивол
 	}
-	if (ent_table.count(temp) != 0) {
-		last_token.data += ent_table[temp];
+	if (ent_table.count(temp) == 0) {
+		throw sp::error_type::unknown_ent;
 	}
-	cur_char = get_next_char(); // получаем следующий сивол 
+	last_token.data += ent_table[temp];
 }
 
 void sp::reader::skip_chars(std::vector<sp::char_type> vect){

@@ -3,7 +3,7 @@
 
 int main(){
     
-	sp::string_t str = _t( "<name><sub_name>text in sub_name</sub_name></name>" );
+	sp::string_t str = _t("<name a  = \" &apos;12&apos;&quot; \"><sub_name>text in sub_name &amp;</sub_name></name>");
 
 	sp::string_reader r(str);
 

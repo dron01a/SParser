@@ -28,6 +28,13 @@ namespace sp {
 		error_tag_name,
 		comment_error,
 		text_end_error,
+		attrib_name_wrong,
+		atribute_name_error,
+		attribute_value_exec_open_quot,
+		attribute_value_exec_close_quot,
+		attribute_value_error,
+		unknown_ent, 
+		autoclose_tag_error,
 	};
 
 	enum class char_type {
@@ -39,9 +46,12 @@ namespace sp {
 		exclam_mark,
 		open_brt,
 		close_brt,
+		apos,
+		quot,
 		space,
 		next_line,
 		slash,
+		eval,
 		end, 
 		unknown
 	};
@@ -107,7 +117,13 @@ namespace sp {
 
 		// обрабока комментария 
 		void comment_proc();
-		
+
+		// обработка имени атрибута
+		void attrib_name_proc();
+
+		// обработка занчения атрибута
+		void attrib_val_proc();
+
 		// обработка сущностей
 		void ent_proc();
 
