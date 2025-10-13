@@ -266,6 +266,26 @@ namespace sp {
 		attribute(const sp::string_t & name, sp::value val);
 		attribute(const sp::char_t * name, sp::value val);
 
+		// возвращает и устанавливает имя
+		sp::string_t name() const;
+		void name(const sp::string_t & str);
+		void name(const sp::char_t * str);
+
+		// возвращает и устанавливает значение
+		sp::value value() const;
+		void value(sp::value val);
+
+		// операторы сравнения
+		bool operator==(const sp::attribute & attrib) const;
+		bool operator!=(const sp::attribute & attrib) const;
+		bool operator>(const sp::attribute & attrib) const;
+		bool operator>=(const sp::attribute & attrib) const;
+		bool operator<(const sp::attribute & attrib) const;
+		bool operator<=(const sp::attribute & attrib) const;
+
+	private:
+		sp::value _value; // значение  
+		sp::string_t _name; // имя 
 	};
 };
 

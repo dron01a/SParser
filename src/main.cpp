@@ -16,5 +16,12 @@ int main(){
 		t = r.get_next_token();
 	}
 
+	// attr test
+
+	sp::attribute a1(L"a", 1);
+	sp::attribute a2(L"a", 1);
+
+	bool res = a1 == a2;
+
     return 0;
 }

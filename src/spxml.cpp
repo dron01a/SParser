@@ -423,6 +423,7 @@ bool sp::value::operator==(const sp::value & val) const{
 	case sp::value_type::_string:
 		return this->to_string() == val.to_string();
 	}
+	return false;
 }
 
 bool sp::value::operator!=(const sp::value & val) const{
@@ -491,4 +492,60 @@ sp::value & sp::value::operator=(double data) {
 sp::value & sp::value::operator=(bool data) {
 	set(data);
 	return *this;
+}
+
+sp::attribute::attribute(){}
+
+sp::attribute::attribute(const sp::string_t & name, sp::value val){ 
+	this->_name = name;
+	this->_value = val;
+}
+
+sp::attribute::attribute(const sp::char_t * name, sp::value val){
+	this->_name = name;
+	this->_value = val;
+}
+
+sp::string_t sp::attribute::name() const{
+	return _name;
+}
+
+void sp::attribute::name(const sp::string_t & str){
+	_name = str;
+}
+
+void sp::attribute::name(const sp::char_t * str){
+	_name = str;
+}
+
+sp::value sp::attribute::value() const{
+	return _value;
+}
+
+void sp::attribute::value(sp::value val){
+	_value = val;
+}
+
+bool sp::attribute::operator==(const sp::attribute & attrib) const{
+	return this->_value == attrib._value && this->_name == attrib._name;
+}
+
+bool sp::attribute::operator!=(const sp::attribute & attrib) const{
+	return this->_value != attrib._value && this->_name != attrib._name;
+}
+
+bool sp::attribute::operator>(const sp::attribute & attrib) const{
+	return this->_value > attrib._value && this->_name == attrib._name;
+}
+
+bool sp::attribute::operator>=(const sp::attribute & attrib) const{
+	return this->_value >= attrib._value && this->_name != attrib._name;
+}
+
+bool sp::attribute::operator<(const sp::attribute & attrib) const {
+	return this->_value < attrib._value && this->_name == attrib._name;
+}
+
+bool sp::attribute::operator<=(const sp::attribute & attrib) const {
+	return this->_value <= attrib._value && this->_name != attrib._name;
 }

@@ -1,5 +1,5 @@
-# SParser
-SParser - Small Parser. 
+
+# Small Parser. 
 
 ## 🇷🇺
 
