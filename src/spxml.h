@@ -27,6 +27,15 @@ namespace sp {
 #define _t(c) c
 #endif
 
+	class value;
+	class attribute;
+	class tag;
+
+	typedef std::map<sp::string_t, sp::attribute>::iterator attr_iterator;
+	typedef std::map<sp::string_t, sp::attribute>::const_iterator const_attr_iterator;
+	typedef std::map<sp::string_t, sp::tag>::iterator tag_iterator;
+	typedef std::map<sp::string_t, sp::tag>::const_iterator const_tag_iterator;
+
 	enum class error_type {
 		uncorrect_char_after_open_brt = 0, 
 		error_tag_name,
@@ -40,6 +49,8 @@ namespace sp {
 		unknown_ent, 
 		autoclose_tag_error,
 		error_value_type,
+		atribute_exist,
+		atribute_not_exist,
 	};
 
 	enum class char_type {
@@ -287,6 +298,55 @@ namespace sp {
 		sp::value _value; // значение  
 		sp::string_t _name; // имя 
 	};
+
+	// таблица с атрибутами (обертка над классом sd::map)
+	class attribute_table {
+	public:
+		// конструктор класса
+		attribute_table();
+		attribute_table(std::initializer_list<attribute> attribute_list);
+	
+		// оператор выдачи по индексу 
+		sp::attribute & operator[](const sp::char_t * name);
+		sp::attribute & operator[](const sp::string_t & name);
+		sp::attribute operator[](const sp::char_t * name) const;
+		sp::attribute operator[](const sp::string_t & name) const;
+
+		// добавляет атрибут
+		void add(const sp::char_t * name, sp::value val);
+		void add(const sp::string_t & name, sp::value val);
+		void add(attribute & attribute);
+
+		// удаляет атрибут
+		void remove(const sp::string_t & name);
+		void remove(const sp::char_t * name);
+
+		// проверяет наличие атрибута
+		bool check(const sp::char_t * name);
+		bool check(const sp::string_t & name);
+		bool check(const sp::char_t * name, sp::value val);
+		bool check(const sp::string_t & name, sp::value val);
+		bool check(attribute & attribute);
+	
+		// возвращает размер таблицы
+		size_t size();
+
+		// возвращает итератор на начало таблицы
+		sp::const_attr_iterator begin() const;
+		sp::attr_iterator begin();
+
+		// возвращает итератор на конец таблицы
+		sp::const_attr_iterator end() const;
+		sp::attr_iterator end();
+
+		// операторы сравнения
+		bool operator==(const sp::attribute_table & attrib_table);
+		bool operator!=(const sp::attribute_table & attrib_table);
+
+	private:
+		std::map<sp::string_t, sp::attribute> table; // map с атрибутами
+	};
+
 };
 
 #endif

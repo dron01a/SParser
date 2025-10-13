@@ -549,3 +549,110 @@ bool sp::attribute::operator<(const sp::attribute & attrib) const {
 bool sp::attribute::operator<=(const sp::attribute & attrib) const {
 	return this->_value <= attrib._value && this->_name != attrib._name;
 }
+
+sp::attribute_table::attribute_table(){}
+
+sp::attribute_table::attribute_table(std::initializer_list<attribute> list){
+	for (std::initializer_list<attribute>::iterator it = list.begin(); it != list.end(); it++) {
+		table.insert({ it->name(), *it });
+	}
+}
+
+sp::attribute & sp::attribute_table::operator[](const sp::char_t * name){
+	return table[name];
+}
+
+sp::attribute & sp::attribute_table::operator[](const sp::string_t & name) {
+	return table[name];
+}
+
+sp::attribute sp::attribute_table::operator[](const sp::char_t * name) const {
+	return const_cast<sp::attribute_table *>(this)->operator[](name);
+}
+
+sp::attribute sp::attribute_table::operator[](const sp::string_t & name) const {
+	return const_cast<sp::attribute_table *>(this)->operator[](name);
+}
+
+void sp::attribute_table::add(const sp::char_t * name, sp::value val){
+	if (check(name)) {
+		throw sp::error_type::atribute_exist;
+	}
+	table.insert({ name, sp::attribute(name, val) });
+}
+
+void sp::attribute_table::add(const sp::string_t & name, sp::value val){
+	this->add(name.c_str(), val);
+}
+
+void sp::attribute_table::add(attribute & attribute){
+	if (check(attribute.name())) {
+		throw sp::error_type::atribute_exist;
+	}
+	table.insert({ attribute.name(), attribute });
+}
+
+void sp::attribute_table::remove(const sp::char_t * name){
+	if (check(name)) {
+		throw sp::error_type::atribute_not_exist;
+	}
+	table.erase(name);
+}
+
+void sp::attribute_table::remove(const sp::string_t & name){
+	this->remove(name.c_str());
+}
+
+bool sp::attribute_table::check(const sp::char_t * name){
+	return table.count(name) != 0;
+}
+
+bool sp::attribute_table::check(const sp::string_t & name) {
+	return table.count(name) != 0;
+}
+
+bool sp::attribute_table::check(const sp::char_t * name, sp::value val){
+	if(this->check(name)){
+		return table[name].value() == val;
+	}
+	return false;
+}
+
+bool sp::attribute_table::check(const sp::string_t & name, sp::value val){
+	return this->check(name.c_str(), val);
+}
+
+bool sp::attribute_table::check(attribute & attribute){
+	if (this->check(attribute.name())) {
+		return table[attribute.name()] == attribute;
+	}
+	return false;
+}
+
+size_t sp::attribute_table::size(){
+	return table.size();
+}
+
+sp::const_attr_iterator sp::attribute_table::begin() const{
+	return table.begin();
+}
+
+sp::attr_iterator sp::attribute_table::begin(){
+	return table.begin();
+}
+
+sp::const_attr_iterator sp::attribute_table::end() const{
+	return table.end();
+}
+
+sp::attr_iterator sp::attribute_table::end(){
+	return table.end();
+}
+
+bool sp::attribute_table::operator==(const sp::attribute_table & attrib_table){
+	return table == attrib_table.table;
+}
+
+bool sp::attribute_table::operator!=(const sp::attribute_table & attrib_table){
+	return !(*this == attrib_table);
+}
