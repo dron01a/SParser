@@ -27,6 +27,16 @@ namespace sp {
 #define _t(c) c
 #endif
 
+	class value;
+	class attribute;
+	class tag;
+
+	typedef std::map<sp::string_t, sp::tag> tag_map;
+	typedef std::map<sp::string_t, sp::attribute>::iterator attr_iterator;
+	typedef std::map<sp::string_t, sp::attribute>::const_iterator const_attr_iterator;
+	typedef sp::tag_map::iterator tag_iterator;
+	typedef sp::tag_map::const_iterator const_tag_iterator;
+
 	enum class error_type {
 		uncorrect_char_after_open_brt = 0, 
 		error_tag_name,
@@ -39,6 +49,11 @@ namespace sp {
 		attribute_value_error,
 		unknown_ent, 
 		autoclose_tag_error,
+		error_value_type,
+		atribute_exist,
+		atribute_not_exist,
+		tag_exist,
+		tag_not_exist
 	};
 
 	enum class char_type {
@@ -72,6 +87,17 @@ namespace sp {
 		atribute_value,
 		comment,
 		end_of_data
+	};
+
+	enum class value_type {
+		_string,
+		_double,
+		_bool
+	};
+
+	enum class tag_type {
+		tag = 0, // простой тег
+		autoclose_tag, // самозакрывающийся тег
 	};
 
 	// структура получаемого символа
@@ -193,6 +219,195 @@ namespace sp {
 		bool good();
 	private:
 		sp::input_stream * stream; // поток с данными
+	};
+
+	// класс значеня атрибута или текста
+	class value {
+	public:
+		// конструктор класса
+		value();
+		value(const sp::char_t * data);
+		value(const sp::string_t & data);
+		value(sp::char_t data);
+		value(int data);
+		value(double data);
+		value(bool data);
+
+		// возвращает тип значения
+		sp::value_type type();
+		sp::value_type type() const;
+
+		// возвращает как строку
+		sp::string_t to_string() const;
+
+		// возвращает как целое число
+		int to_int() const;
+
+		// возвращает как число с плавющей точкой
+		double to_double() const;
+
+		// возвращает булево значение
+		bool to_bool() const;
+
+		// устанавливае значение
+		void set(const sp::char_t * data);
+		void set(const sp::string_t & data);
+		void set(sp::char_t data);
+		void set(int data);
+		void set(double data);
+		void set(bool data);
+		
+		// операторы сравнения
+		bool operator==(const sp::value & val) const;
+		bool operator!=(const sp::value & val) const;
+		bool operator>(const sp::value & val) const;
+		bool operator>=(const sp::value & val) const;
+		bool operator<(const sp::value & val) const;
+		bool operator<=(const sp::value & val) const;
+
+		//операторы присваивания
+		sp::value & operator=(const sp::char_t * data);
+		sp::value & operator=(const sp::string_t & data);
+		sp::value & operator=(sp::char_t data);
+		sp::value & operator=(int data);
+		sp::value & operator=(double data);
+		sp::value & operator=(bool data);
+	private:
+		sp::value_type _type = sp::value_type::_string; // тип значения
+		sp::string_t data; // данные
+	};
+
+	// класс атрибута
+	class attribute {
+	public:
+		// конструктор класса
+		attribute();
+		attribute(const sp::string_t & name, sp::value val);
+		attribute(const sp::char_t * name, sp::value val);
+
+		// возвращает и устанавливает имя
+		sp::string_t name() const;
+		void name(const sp::string_t & str);
+		void name(const sp::char_t * str);
+
+		// возвращает и устанавливает значение
+		sp::value value() const;
+		void value(sp::value val);
+
+		// операторы сравнения
+		bool operator==(const sp::attribute & attrib) const;
+		bool operator!=(const sp::attribute & attrib) const;
+		bool operator>(const sp::attribute & attrib) const;
+		bool operator>=(const sp::attribute & attrib) const;
+		bool operator<(const sp::attribute & attrib) const;
+		bool operator<=(const sp::attribute & attrib) const;
+
+	private:
+		sp::value _value; // значение  
+		sp::string_t _name; // имя 
+	};
+
+	// таблица с атрибутами (обертка над классом sd::map)
+	class attribute_table {
+	public:
+		// конструктор класса
+		attribute_table();
+		attribute_table(std::initializer_list<attribute> attribute_list);
+	
+		// оператор выдачи по индексу 
+		sp::attribute & operator[](const sp::char_t * name);
+		sp::attribute & operator[](const sp::string_t & name);
+		sp::attribute operator[](const sp::char_t * name) const;
+		sp::attribute operator[](const sp::string_t & name) const;
+
+		// добавляет атрибут
+		void add(const sp::char_t * name, sp::value val);
+		void add(const sp::string_t & name, sp::value val);
+		void add(attribute & attribute);
+
+		// удаляет атрибут
+		void remove(const sp::string_t & name);
+		void remove(const sp::char_t * name);
+
+		// проверяет наличие атрибута
+		bool check(const sp::char_t * name);
+		bool check(const sp::string_t & name);
+		bool check(const sp::char_t * name, sp::value val);
+		bool check(const sp::string_t & name, sp::value val);
+		bool check(attribute & attribute);
+	
+		// возвращает размер таблицы
+		size_t size();
+
+		// возвращает итератор на начало таблицы
+		sp::const_attr_iterator begin() const;
+		sp::attr_iterator begin();
+
+		// возвращает итератор на конец таблицы
+		sp::const_attr_iterator end() const;
+		sp::attr_iterator end();
+
+		// операторы сравнения
+		bool operator==(const sp::attribute_table & attrib_table);
+		bool operator!=(const sp::attribute_table & attrib_table);
+
+	private:
+		std::map<sp::string_t, sp::attribute> table; // map с атрибутами
+	};
+
+	// класс описывающий тег
+	class tag {
+	public:
+		// консрукторы класса
+		tag();
+		tag(const sp::string_t & name);
+		tag(const sp::string_t & name, sp::attribute_table table);
+		tag(const sp::string_t & name, sp::tag_map childs);
+		tag(const sp::string_t & name, sp::attribute_table table, sp::tag_map childs);
+		tag(const sp::char_t * name);
+		tag(const sp::char_t * name, sp::attribute_table table);
+		tag(const sp::char_t * name, sp::tag_map childs);
+		tag(const sp::char_t * name, sp::attribute_table table, sp::tag_map childs);
+		
+		// возвращает тип тега
+		sp::tag_type type() const;
+		sp::tag_type & type();
+
+		// возвращает текст тега
+		sp::value text() const;
+		sp::value & text();
+
+		// возвращает атрибуты тега
+		sp::attribute_table attributes() const;
+		sp::attribute_table & attributes();
+
+		// добавляет тег
+		void add_tag(sp::tag & new_child);
+		void add_tag(sp::tag * new_child);
+
+		// удаляет тег
+		void remove_tag(const sp::char_t * name);
+		void remove_tag(const sp::string_t & name);
+
+		// проверяет наличие тега
+		bool check_tag(const sp::char_t * name);
+		bool check_tag(const sp::string_t & name);
+
+		// возвращает итератор начала map с вложенными тегами
+		sp::const_tag_iterator begin() const;
+		sp::tag_iterator begin();
+
+		// возвращает итератор конца map с вложенными тегами
+		sp::const_tag_iterator end() const;
+		sp::tag_iterator end();
+
+	private:
+		sp::string_t _name; // имя тега
+		sp::value _text; // текст тега
+		sp::attribute_table attrs; // атрибуты тега
+		sp::tag_type _type = sp::tag_type::tag; // тип тега
+		std::map<sp::string_t, sp::tag> childs; // вложенные теги
+
 	};
 
 };
