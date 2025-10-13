@@ -31,10 +31,11 @@ namespace sp {
 	class attribute;
 	class tag;
 
+	typedef std::map<sp::string_t, sp::tag> tag_map;
 	typedef std::map<sp::string_t, sp::attribute>::iterator attr_iterator;
 	typedef std::map<sp::string_t, sp::attribute>::const_iterator const_attr_iterator;
-	typedef std::map<sp::string_t, sp::tag>::iterator tag_iterator;
-	typedef std::map<sp::string_t, sp::tag>::const_iterator const_tag_iterator;
+	typedef sp::tag_map::iterator tag_iterator;
+	typedef sp::tag_map::const_iterator const_tag_iterator;
 
 	enum class error_type {
 		uncorrect_char_after_open_brt = 0, 
@@ -51,6 +52,8 @@ namespace sp {
 		error_value_type,
 		atribute_exist,
 		atribute_not_exist,
+		tag_exist,
+		tag_not_exist
 	};
 
 	enum class char_type {
@@ -90,6 +93,11 @@ namespace sp {
 		_string,
 		_double,
 		_bool
+	};
+
+	enum class tag_type {
+		tag = 0, // простой тег
+		autoclose_tag, // самозакрывающийся тег
 	};
 
 	// структура получаемого символа
@@ -345,6 +353,61 @@ namespace sp {
 
 	private:
 		std::map<sp::string_t, sp::attribute> table; // map с атрибутами
+	};
+
+	// класс описывающий тег
+	class tag {
+	public:
+		// консрукторы класса
+		tag();
+		tag(const sp::string_t & name);
+		tag(const sp::string_t & name, sp::attribute_table table);
+		tag(const sp::string_t & name, sp::tag_map childs);
+		tag(const sp::string_t & name, sp::attribute_table table, sp::tag_map childs);
+		tag(const sp::char_t * name);
+		tag(const sp::char_t * name, sp::attribute_table table);
+		tag(const sp::char_t * name, sp::tag_map childs);
+		tag(const sp::char_t * name, sp::attribute_table table, sp::tag_map childs);
+		
+		// возвращает тип тега
+		sp::tag_type type() const;
+		sp::tag_type & type();
+
+		// возвращает текст тега
+		sp::value text() const;
+		sp::value & text();
+
+		// возвращает атрибуты тега
+		sp::attribute_table attributes() const;
+		sp::attribute_table & attributes();
+
+		// добавляет тег
+		void add_tag(sp::tag & new_child);
+		void add_tag(sp::tag * new_child);
+
+		// удаляет тег
+		void remove_tag(const sp::char_t * name);
+		void remove_tag(const sp::string_t & name);
+
+		// проверяет наличие тега
+		bool check_tag(const sp::char_t * name);
+		bool check_tag(const sp::string_t & name);
+
+		// возвращает итератор начала map с вложенными тегами
+		sp::const_tag_iterator begin() const;
+		sp::tag_iterator begin();
+
+		// возвращает итератор конца map с вложенными тегами
+		sp::const_tag_iterator end() const;
+		sp::tag_iterator end();
+
+	private:
+		sp::string_t _name; // имя тега
+		sp::value _text; // текст тега
+		sp::attribute_table attrs; // атрибуты тега
+		sp::tag_type _type = sp::tag_type::tag; // тип тега
+		std::map<sp::string_t, sp::tag> childs; // вложенные теги
+
 	};
 
 };

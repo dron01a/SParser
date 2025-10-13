@@ -656,3 +656,118 @@ bool sp::attribute_table::operator==(const sp::attribute_table & attrib_table){
 bool sp::attribute_table::operator!=(const sp::attribute_table & attrib_table){
 	return !(*this == attrib_table);
 }
+
+sp::tag_type sp::tag::type() const {
+	return _type;
+}
+
+sp::tag_type & sp::tag::type(){
+	return _type;
+}
+
+sp::value sp::tag::text() const{
+	return _text;
+}
+
+sp::value & sp::tag::text(){
+	return _text;
+}
+
+sp::attribute_table sp::tag::attributes() const{
+	return this->attrs;
+}
+
+sp::attribute_table & sp::tag::attributes(){
+	return this->attrs;
+}
+
+void sp::tag::add_tag(sp::tag & new_child){
+	if (this->check_tag(new_child._name)) {
+		throw sp::error_type::tag_exist;
+	}
+	this->childs.insert({ new_child._name, new_child });
+}
+
+void sp::tag::add_tag(sp::tag * new_child){
+	if (this->check_tag(new_child->_name)) {
+		throw sp::error_type::tag_exist;
+	}
+	this->childs.insert({ new_child->_name, *new_child });
+}
+
+void sp::tag::remove_tag(const sp::char_t * name){
+	if (this->check_tag(name)) {
+		throw sp::error_type::tag_exist;
+	}
+	this->childs.erase(name);
+}
+
+void sp::tag::remove_tag(const sp::string_t & name){
+	remove_tag(name.c_str());
+}
+
+bool sp::tag::check_tag(const sp::char_t * name){
+	return this->childs.count(name) != 0;
+}
+
+bool sp::tag::check_tag(const sp::string_t & name){
+	return this->childs.count(name) != 0;
+}
+
+sp::const_tag_iterator sp::tag::begin() const{
+	return this->childs.begin();
+}
+
+sp::tag_iterator sp::tag::begin(){
+	return this->childs.begin();
+}
+
+sp::const_tag_iterator sp::tag::end() const{
+	return this->childs.end();
+}
+
+sp::tag_iterator sp::tag::end(){
+	return this->childs.end();
+}
+
+sp::tag::tag(){}
+
+sp::tag::tag(const sp::string_t & name){
+	this->_name = name;
+}
+
+sp::tag::tag(const sp::string_t & name, sp::attribute_table table){
+	this->_name = name;
+	this->attrs = table;
+}
+
+sp::tag::tag(const sp::string_t & name, sp::tag_map childs){
+	this->_name = name;
+	this->childs = childs;
+}
+
+sp::tag::tag(const sp::string_t & name, sp::attribute_table table, sp::tag_map childs){
+	this->_name = name;
+	this->attrs = table;
+	this->childs = childs;
+}
+
+sp::tag::tag(const sp::char_t * name) {
+	this->_name = name;
+}
+
+sp::tag::tag(const sp::char_t * name, sp::attribute_table table) {
+	this->_name = name;
+	this->attrs = table;
+}
+
+sp::tag::tag(const sp::char_t * name, sp::tag_map childs) {
+	this->_name = name;
+	this->childs = childs;
+}
+
+sp::tag::tag(const sp::char_t * name, sp::attribute_table table, sp::tag_map childs) {
+	this->_name = name;
+	this->attrs = table;
+	this->childs = childs;
+}
