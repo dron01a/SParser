@@ -657,6 +657,48 @@ bool sp::attribute_table::operator!=(const sp::attribute_table & attrib_table){
 	return !(*this == attrib_table);
 }
 
+sp::tag::tag() {}
+
+sp::tag::tag(const sp::string_t & name) {
+	this->_name = name;
+}
+
+sp::tag::tag(const sp::string_t & name, sp::attribute_table table) {
+	this->_name = name;
+	this->attrs = table;
+}
+
+sp::tag::tag(const sp::string_t & name, sp::tag_map childs) {
+	this->_name = name;
+	this->childs = childs;
+}
+
+sp::tag::tag(const sp::string_t & name, sp::attribute_table table, sp::tag_map childs) {
+	this->_name = name;
+	this->attrs = table;
+	this->childs = childs;
+}
+
+sp::tag::tag(const sp::char_t * name) {
+	this->_name = name;
+}
+
+sp::tag::tag(const sp::char_t * name, sp::attribute_table table) {
+	this->_name = name;
+	this->attrs = table;
+}
+
+sp::tag::tag(const sp::char_t * name, sp::tag_map childs) {
+	this->_name = name;
+	this->childs = childs;
+}
+
+sp::tag::tag(const sp::char_t * name, sp::attribute_table table, sp::tag_map childs) {
+	this->_name = name;
+	this->attrs = table;
+	this->childs = childs;
+}
+
 sp::tag_type sp::tag::type() const {
 	return _type;
 }
@@ -728,46 +770,4 @@ sp::const_tag_iterator sp::tag::end() const{
 
 sp::tag_iterator sp::tag::end(){
 	return this->childs.end();
-}
-
-sp::tag::tag(){}
-
-sp::tag::tag(const sp::string_t & name){
-	this->_name = name;
-}
-
-sp::tag::tag(const sp::string_t & name, sp::attribute_table table){
-	this->_name = name;
-	this->attrs = table;
-}
-
-sp::tag::tag(const sp::string_t & name, sp::tag_map childs){
-	this->_name = name;
-	this->childs = childs;
-}
-
-sp::tag::tag(const sp::string_t & name, sp::attribute_table table, sp::tag_map childs){
-	this->_name = name;
-	this->attrs = table;
-	this->childs = childs;
-}
-
-sp::tag::tag(const sp::char_t * name) {
-	this->_name = name;
-}
-
-sp::tag::tag(const sp::char_t * name, sp::attribute_table table) {
-	this->_name = name;
-	this->attrs = table;
-}
-
-sp::tag::tag(const sp::char_t * name, sp::tag_map childs) {
-	this->_name = name;
-	this->childs = childs;
-}
-
-sp::tag::tag(const sp::char_t * name, sp::attribute_table table, sp::tag_map childs) {
-	this->_name = name;
-	this->attrs = table;
-	this->childs = childs;
 }
