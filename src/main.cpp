@@ -3,9 +3,9 @@
 
 int main(){
     
-	sp::string_t str = _t("<name a  = \" &apos;12&apos;&quot; \" b = \"\"><sub_name>text in sub_name &amp;</sub_name></name>");
+	//sp::string_t str = _t("<name a  = \" &apos;12&apos;&quot; \" b = \"\"><sub_name>text in sub_name &amp;</sub_name></name>");
 
-	sp::string_reader r(str);
+	sp::file_reader r(_t("test.xml"));
 
 	std::vector<sp::token> vt;
 

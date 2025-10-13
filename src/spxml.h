@@ -219,13 +219,16 @@ namespace sp {
 		sp::value_type type() const;
 
 		// возвращает как строку
-		sp::string_t to_string();
+		sp::string_t to_string() const;
 
 		// возвращает как целое число
-		int to_int();
+		int to_int() const;
 
 		// возвращает как число с плавющей точкой
-		double to_double();
+		double to_double() const;
+
+		// возвращает булево значение
+		bool to_bool() const;
 
 		// устанавливае значение
 		void set(const sp::char_t * data);
@@ -234,11 +237,36 @@ namespace sp {
 		void set(int data);
 		void set(double data);
 		void set(bool data);
+		
+		// операторы сравнения
+		bool operator==(const sp::value & val) const;
+		bool operator!=(const sp::value & val) const;
+		bool operator>(const sp::value & val) const;
+		bool operator>=(const sp::value & val) const;
+		bool operator<(const sp::value & val) const;
+		bool operator<=(const sp::value & val) const;
+
+		//операторы присваивания
+		sp::value & operator=(const sp::char_t * data);
+		sp::value & operator=(const sp::string_t & data);
+		sp::value & operator=(sp::char_t data);
+		sp::value & operator=(int data);
+		sp::value & operator=(double data);
+		sp::value & operator=(bool data);
 	private:
 		sp::value_type _type = sp::value_type::_string; // тип значения
 		sp::string_t data; // данные
 	};
 
+	// класс атрибута
+	class attribute {
+	public:
+		// конструктор класса
+		attribute();
+		attribute(const sp::string_t & name, sp::value val);
+		attribute(const sp::char_t * name, sp::value val);
+
+	};
 };
 
 #endif

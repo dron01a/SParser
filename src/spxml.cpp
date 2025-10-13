@@ -173,6 +173,10 @@ void sp::reader::comment_proc(){
 
 void sp::reader::attrib_name_proc(){
 	skip_chars({ sp::char_type::space });
+	if (cur_char.type != sp::char_type::simlpe_char) {
+		last_token = get_next_token();
+		return;
+	}
 	while (cur_char.type != sp::char_type::eval && cur_char.type != sp::char_type::space) {
 		switch (cur_char.type){
 		case sp::char_type::simlpe_char:
@@ -337,22 +341,26 @@ sp::value_type sp::value::type() const {
 	return _type;
 }
 
-sp::string_t sp::value::to_string(){
+sp::string_t sp::value::to_string() const {
 	return data;
 }
 
-int sp::value::to_int(){
+int sp::value::to_int() const {
 	if (_type == sp::value_type::_double) {
 		return std::stoi(data);
 	}
 	throw sp::error_type::error_value_type;
 }
 
-double sp::value::to_double(){
+double sp::value::to_double() const {
 	if (_type == sp::value_type::_double) {
 		return std::stod(data);
 	}
 	throw sp::error_type::error_value_type;
+}
+
+bool sp::value::to_bool() const {
+	return data[0] != '0';
 }
 
 void sp::value::set(const sp::char_t * data){
@@ -401,4 +409,86 @@ void sp::value::set(bool data) {
 #else
 	this->data = std::to_string(data);
 #endif 
+}
+
+bool sp::value::operator==(const sp::value & val) const{
+	if (_type != val.type()) {
+		return false;
+	}
+	switch (_type){
+	case sp::value_type::_bool:
+		return this->to_bool() == val.to_bool();
+	case sp::value_type::_double:
+		return this->to_double() == val.to_double();
+	case sp::value_type::_string:
+		return this->to_string() == val.to_string();
+	}
+}
+
+bool sp::value::operator!=(const sp::value & val) const{
+	return !(*this == val);
+}
+
+bool sp::value::operator>(const sp::value & val) const{
+	if (_type != val.type()) {
+		return false;
+	}
+	switch (_type) {
+	case sp::value_type::_bool:
+		return this->to_bool() > val.to_bool();
+	case sp::value_type::_double:
+		return this->to_double() > val.to_double();
+	}
+	return false;
+}
+
+bool sp::value::operator>=(const sp::value & val) const{
+	if (_type != val.type()) {
+		return false;
+	}
+	switch (_type) {
+	case sp::value_type::_bool:
+		return this->to_bool() >= val.to_bool();
+	case sp::value_type::_double:
+		return this->to_double() >= val.to_double();
+	}
+	return false;
+}
+
+bool sp::value::operator<(const sp::value & val) const{
+	return !(*this >= val);
+}
+
+bool sp::value::operator<=(const sp::value & val) const{
+	return !(*this > val);
+}
+
+sp::value & sp::value::operator=(const sp::char_t * data){
+	set(data);
+	return *this;
+}
+
+sp::value & sp::value::operator=(const sp::string_t & data) {
+	set(data);
+	return *this;
+}
+
+sp::value & sp::value::operator=(sp::char_t data) {
+	set(data);
+	return *this;
+}
+
+sp::value & sp::value::operator=(int data) {
+	set(data);
+	return *this;
+}
+
+sp::value & sp::value::operator=(double data) {
+	set(data);
+	return *this;
+}
+
+sp::value & sp::value::operator=(bool data) {
+	set(data);
+	return *this;
 }
