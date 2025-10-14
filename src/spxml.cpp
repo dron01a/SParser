@@ -1,7 +1,7 @@
 #include "spxml.h"
 
 bool is_digit(sp::string_t str) {
-	return str.find_first_not_of(_t("0123456789,.+-e")) != sp::string_t::npos;
+	return str.find_first_not_of(_t("0123456789,.+-e ")) == sp::string_t::npos;
 }
 
 bool is_bool(sp::string_t str) {
@@ -670,13 +670,13 @@ sp::tag::tag(const sp::string_t & name, sp::attribute_table table) {
 
 sp::tag::tag(const sp::string_t & name, sp::tag_map childs) {
 	this->_name = name;
-	this->childs = childs;
+	this->childs.insert(childs.begin(), childs.end());
 }
 
 sp::tag::tag(const sp::string_t & name, sp::attribute_table table, sp::tag_map childs) {
 	this->_name = name;
 	this->attrs = table;
-	this->childs = childs;
+	this->childs.insert(childs.begin(), childs.end());
 }
 
 sp::tag::tag(const sp::char_t * name) {
@@ -690,13 +690,13 @@ sp::tag::tag(const sp::char_t * name, sp::attribute_table table) {
 
 sp::tag::tag(const sp::char_t * name, sp::tag_map childs) {
 	this->_name = name;
-	this->childs = childs;
+	this->childs.insert(childs.begin(), childs.end());
 }
 
 sp::tag::tag(const sp::char_t * name, sp::attribute_table table, sp::tag_map childs) {
 	this->_name = name;
 	this->attrs = table;
-	this->childs = childs;
+	this->childs.insert(childs.begin(), childs.end());
 }
 
 sp::tag_type sp::tag::type() const {
@@ -724,22 +724,16 @@ sp::attribute_table & sp::tag::attributes(){
 }
 
 void sp::tag::add_tag(sp::tag & new_child){
-	if (this->check_tag(new_child._name)) {
-		throw sp::error_type::tag_exist;
-	}
 	this->childs.insert({ new_child._name, new_child });
 }
 
 void sp::tag::add_tag(sp::tag * new_child){
-	if (this->check_tag(new_child->_name)) {
-		throw sp::error_type::tag_exist;
-	}
 	this->childs.insert({ new_child->_name, *new_child });
 }
 
 void sp::tag::remove_tag(const sp::char_t * name){
 	if (this->check_tag(name)) {
-		throw sp::error_type::tag_exist;
+		throw sp::error_type::tag_not_exist;
 	}
 	this->childs.erase(name);
 }
@@ -770,4 +764,113 @@ sp::const_tag_iterator sp::tag::end() const{
 
 sp::tag_iterator sp::tag::end(){
 	return this->childs.end();
+}
+
+sp::xml_parser::xml_parser() { }
+
+sp::xml_parser::~xml_parser(){
+	delete this->reader;
+	delete this->root;
+	delete this->prologe;
+}
+
+sp::parse_result sp::xml_parser::load_from_file(const sp::char_t * file_name){
+	this->reader = new sp::file_reader(file_name);
+	if (!reader->good()) {
+		throw sp::error_type::file_not_found;
+	}
+	return this->parse();
+}
+
+sp::parse_result sp::xml_parser::load_from_file(const sp::string_t & file_name){
+	return this->load_from_file(file_name.c_str());
+}
+
+sp::parse_result sp::xml_parser::load_from_string(const sp::char_t * data){
+	this->reader = new sp::string_reader(data);
+	if (!reader->good()) {
+		throw sp::error_type::string_is_empty;
+	}
+	return this->parse();
+}
+
+sp::parse_result sp::xml_parser::load_from_string(const sp::string_t & data){
+	return this->load_from_file(data.c_str());
+}
+
+sp::parse_result sp::xml_parser::load_from_stream(sp::input_stream & stream){
+	this->reader = new sp::stream_reader(stream);
+	if (!reader->good()) {
+		throw sp::error_type::thread_is_bad;
+	}
+	return this->parse();
+}
+
+sp::error_type sp::xml_parser::get_last_error(){
+	return this->last_error;
+}
+
+sp::parse_result sp::xml_parser::parse(){
+	sp::parse_result res = parse_result::parse_ok;
+	try {
+		while (reader->get_last_token().type != sp::token_type::end_of_data) {
+			switch (reader->get_last_token().type){
+			case sp::token_type::tag_name:
+				root = parse_tag();
+				break;
+			}
+			reader->get_next_token(); // получаем следующий токен
+		}
+	}
+	catch (sp::error_type & err) {
+		this->last_error = err;
+		res = parse_result::parse_error;
+	}
+	delete reader; // очищаем память выделеную под чтение данных
+	return res;
+}
+
+sp::tag * sp::xml_parser::parse_tag(){
+	sp::tag * result = new sp::tag(reader->get_last_token().data);
+	reader->get_next_token();
+	while (reader->get_last_token().type != sp::token_type::tag_end && 
+		reader->get_last_token().type != sp::token_type::tag_autoclose_end){
+		switch (reader->get_last_token().type){
+		case sp::token_type::tag_name: {
+			tag * temp_tag = parse_tag();
+			result->add_tag(std::move(temp_tag));
+			delete temp_tag;
+			}
+			break;
+		case sp::token_type::atribute_name:
+			result->attributes().add(parse_attribute());
+			break;
+		case sp::token_type::tag_text:
+			result->text().set(reader->get_last_token().data);
+			break;
+		case sp::token_type::end_of_data:
+			throw sp::error_type::not_found_end_of_tag;
+		}
+		reader->get_next_token();
+	}
+	switch (reader->get_last_token().type){
+	case sp::token_type::tag_end:
+		result->type() = sp::tag_type::tag;
+		break;
+	case sp::token_type::tag_autoclose_end:
+		result->type() = sp::tag_type::autoclose_tag;
+		break;
+	}
+	return result;
+}
+
+sp::attribute sp::xml_parser::parse_attribute(){
+	sp::attribute result;
+	result.name(reader->get_last_token().data);
+	reader->get_next_token();
+	if (reader->get_last_token().type != sp::token_type::atribute_value) {
+		throw sp::error_type::attribute_parse_error;
+	}
+	result.value(reader->get_last_token().data);
+	return result;
 }

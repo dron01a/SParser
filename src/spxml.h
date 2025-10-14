@@ -31,14 +31,15 @@ namespace sp {
 	class attribute;
 	class tag;
 
-	typedef std::map<sp::string_t, sp::tag> tag_map;
+	typedef std::multimap<sp::string_t, sp::tag> tag_map;
 	typedef std::map<sp::string_t, sp::attribute>::iterator attr_iterator;
 	typedef std::map<sp::string_t, sp::attribute>::const_iterator const_attr_iterator;
 	typedef sp::tag_map::iterator tag_iterator;
 	typedef sp::tag_map::const_iterator const_tag_iterator;
 
 	enum class error_type {
-		uncorrect_char_after_open_brt = 0, 
+		none = 0,
+		uncorrect_char_after_open_brt, 
 		error_tag_name,
 		comment_error,
 		text_end_error,
@@ -52,8 +53,13 @@ namespace sp {
 		error_value_type,
 		atribute_exist,
 		atribute_not_exist,
-		tag_exist,
-		tag_not_exist
+	//	tag_exist,
+		tag_not_exist,
+		file_not_found,
+		string_is_empty,
+		thread_is_bad,
+		not_found_end_of_tag,
+		attribute_parse_error
 	};
 
 	enum class char_type {
@@ -98,6 +104,11 @@ namespace sp {
 	enum class tag_type {
 		tag = 0, // простой тег
 		autoclose_tag, // самозакрывающийся тег
+	};
+
+	enum class parse_result {
+		parse_ok = 0,
+		parse_error
 	};
 
 	// структура получаемого символа
@@ -406,10 +417,48 @@ namespace sp {
 		sp::value _text; // текст тега
 		sp::attribute_table attrs; // атрибуты тега
 		sp::tag_type _type = sp::tag_type::tag; // тип тега
-		std::map<sp::string_t, sp::tag> childs; // вложенные теги
+		sp::tag_map childs; // вложенные теги
 
 	};
 
+	// класс парсера xml
+	class xml_parser {
+	public:
+		// конструктор класса
+		xml_parser();
+
+		// деструтор класса 
+		~xml_parser();
+
+		// загрузка из файла
+		sp::parse_result load_from_file(const sp::char_t * file_name);
+		sp::parse_result load_from_file(const sp::string_t & file_name);
+
+		// загрузка из строки
+		sp::parse_result load_from_string(const sp::char_t * data);
+		sp::parse_result load_from_string(const sp::string_t & data);
+
+		// загрузка из потока
+		sp::parse_result load_from_stream(sp::input_stream & stream);
+
+		// функция возвращающая последнюю полученную ошибку
+		sp::error_type get_last_error();
+	private:
+		// функция запускающая парсинг
+		sp::parse_result parse();
+		
+		// парсинг тега
+		sp::tag * parse_tag();
+
+		// парсинг атрибута
+		sp::attribute parse_attribute();
+
+		sp::reader * reader = nullptr; // для получения текста
+		sp::tag * root = nullptr; // корневой тег
+		sp::tag * prologe = nullptr; // пролог
+		sp::error_type last_error = sp::error_type::none;
+
+	};
 };
 
 #endif
