@@ -894,8 +894,7 @@ sp::tag * sp::xml_parser::parse_tag(){
 	sp::tag * result = new sp::tag(reader->get_last_token().data);
 	reader->get_next_token(); // получаем следующий токен
 	while (reader->get_last_token().type != sp::token_type::tag_end && 
-		reader->get_last_token().type != sp::token_type::tag_autoclose_end &&
-		reader->get_last_token().type != sp::token_type::prol_end){
+		reader->get_last_token().type != sp::token_type::tag_autoclose_end ){
 		switch (reader->get_last_token().type){
 		case sp::token_type::tag_name: {
 			tag * temp_tag = parse_tag();
@@ -940,7 +939,20 @@ sp::tag * sp::xml_parser::parse_declaration(){
 	if (reader->get_last_token().data != _t("xml")) {
 		throw sp::error_type::declaration_error;
 	}
-	sp::tag * result = parse_tag();
+	sp::tag * result = new sp::tag(reader->get_last_token().data);
+	reader->get_next_token();
+	while (reader->get_last_token().type != sp::token_type::prol_end) {
+		switch (reader->get_last_token().type) {
+		case sp::token_type::atribute_name:
+			result->attributes().add(parse_attribute());
+			break;
+		case sp::token_type::end_of_data:
+			throw sp::error_type::not_found_end_of_tag;
+		default:
+			throw sp::error_type::declaration_error;
+		}
+		reader->get_next_token();
+	}
 	if (result->attributes().size() > 3) {
 		throw sp::error_type::declaration_error;
 	}
