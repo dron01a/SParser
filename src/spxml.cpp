@@ -38,7 +38,7 @@ sp::token sp::reader::get_next_token(){
 		cur_char = get_next_char();
 	}
 	last_token.data.clear();
-	switch (cur_char.type){
+	switch (cur_char.type) {
 	case sp::char_type::close_brt:
 		close_brt_proc();
 		break;
@@ -59,6 +59,14 @@ sp::token sp::reader::get_next_token(){
 		if (cur_char.type != sp::char_type::close_brt) {
 			throw sp::error_type::autoclose_tag_error;
 		}
+		break;
+	case sp::char_type::question_mark:
+		cur_char = get_next_char();
+		if (cur_char.type != sp::char_type::close_brt) {
+			throw sp::error_type::declaration_error;
+		}
+		last_token.type = sp::token_type::prol_end;
+		skip_chars( { sp::char_type::space, sp::char_type::next_line } );
 		break;
 	}
 	return last_token;
@@ -106,6 +114,11 @@ void sp::reader::open_brt_proc(){
 	case sp::char_type::exclam_mark:
 		comment_proc();
 		break;
+	case sp::char_type::question_mark:
+		cur_char = get_next_char(); // получаем следующий сивол
+		name_proc(); // получаем имя
+		last_token.type = sp::token_type::prol_begin;
+		break;
 	default:
 		throw sp::error_type::uncorrect_char_after_open_brt;
 	}
@@ -135,6 +148,7 @@ void sp::reader::close_brt_proc(){
 }
 
 void sp::reader::name_proc(){
+	skip_chars({ sp::char_type::space });
 	while (cur_char.type != sp::char_type::close_brt && cur_char.type != sp::char_type::space) {
 		switch (cur_char.type){
 		case sp::char_type::digit:
@@ -770,8 +784,51 @@ sp::xml_parser::xml_parser() { }
 
 sp::xml_parser::~xml_parser(){
 	delete this->reader;
-	delete this->root;
-	delete this->prologe;
+	delete this->_root;
+	delete this->declaration;
+}
+
+sp::tag * sp::xml_parser::root(){
+	return _root;
+}
+
+sp::string_t sp::xml_parser::encoding(){
+	return declaration->attributes()[_t("encoding")].value().to_string();
+}
+
+void sp::xml_parser::encoding(const sp::char_t * enc){
+	declaration->attributes()[_t("encoding")].value().set(enc);
+}
+
+void sp::xml_parser::encoding(const sp::string_t & enc){
+	declaration->attributes()[_t("encoding")].value().set(enc);
+}
+
+sp::string_t sp::xml_parser::version() {
+	return declaration->attributes()[_t("version")].value().to_string();
+}
+
+void sp::xml_parser::version(const sp::char_t * version) {
+	declaration->attributes()[_t("version")].value().set(version);
+}
+
+void sp::xml_parser::version(const sp::string_t & version) {
+	declaration->attributes()[_t("version")].value().set(version);
+}
+
+sp::string_t sp::xml_parser::standalone() {
+	return declaration->attributes()[_t("standalone")].value().to_string();
+}
+
+void sp::xml_parser::standalone(const sp::char_t * standalone) {
+	if (standalone != _t("yes") && standalone != _t("no")) {
+		throw sp::error_type::invalid_standalone;
+	}
+	declaration->attributes()[_t("standalone")].value().set(standalone);
+}
+
+void sp::xml_parser::standalone(const sp::string_t & standalone) {
+	declaration->attributes()[_t("standalone")].value().set(standalone);
 }
 
 sp::parse_result sp::xml_parser::load_from_file(const sp::char_t * file_name){
@@ -816,7 +873,10 @@ sp::parse_result sp::xml_parser::parse(){
 		while (reader->get_last_token().type != sp::token_type::end_of_data) {
 			switch (reader->get_last_token().type){
 			case sp::token_type::tag_name:
-				root = parse_tag();
+				_root = parse_tag();
+				break;
+			case sp::token_type::prol_begin:
+				declaration = parse_declaration();
 				break;
 			}
 			reader->get_next_token(); // получаем следующий токен
@@ -832,9 +892,10 @@ sp::parse_result sp::xml_parser::parse(){
 
 sp::tag * sp::xml_parser::parse_tag(){
 	sp::tag * result = new sp::tag(reader->get_last_token().data);
-	reader->get_next_token();
+	reader->get_next_token(); // получаем следующий токен
 	while (reader->get_last_token().type != sp::token_type::tag_end && 
-		reader->get_last_token().type != sp::token_type::tag_autoclose_end){
+		reader->get_last_token().type != sp::token_type::tag_autoclose_end &&
+		reader->get_last_token().type != sp::token_type::prol_end){
 		switch (reader->get_last_token().type){
 		case sp::token_type::tag_name: {
 			tag * temp_tag = parse_tag();
@@ -872,5 +933,21 @@ sp::attribute sp::xml_parser::parse_attribute(){
 		throw sp::error_type::attribute_parse_error;
 	}
 	result.value(reader->get_last_token().data);
+	return result;
+}
+
+sp::tag * sp::xml_parser::parse_declaration(){
+	if (reader->get_last_token().data != _t("xml")) {
+		throw sp::error_type::declaration_error;
+	}
+	sp::tag * result = parse_tag();
+	if (result->attributes().size() > 3) {
+		throw sp::error_type::declaration_error;
+	}
+	for (sp::attr_iterator it = result->attributes().begin(); it != result->attributes().end(); it++) {
+		if (it->first != _t("encoding") && it->first != _t("version") && it->first != _t("standalone")) {
+			throw sp::error_type::declaration_error;
+		}
+	}
 	return result;
 }

@@ -49,6 +49,7 @@ namespace sp {
 		attribute_value_exec_close_quot,
 		attribute_value_error,
 		unknown_ent, 
+		declaration_error,
 		autoclose_tag_error,
 		error_value_type,
 		atribute_exist,
@@ -59,7 +60,8 @@ namespace sp {
 		string_is_empty,
 		thread_is_bad,
 		not_found_end_of_tag,
-		attribute_parse_error
+		attribute_parse_error,
+		invalid_standalone
 	};
 
 	enum class char_type {
@@ -430,6 +432,24 @@ namespace sp {
 		// деструтор класса 
 		~xml_parser();
 
+		// возвращает корневой тег
+		sp::tag * root(); 
+
+		// возвращает кодировку 
+		sp::string_t encoding();
+		void encoding(const sp::char_t * enc);
+		void encoding(const sp::string_t & enc);
+
+		// возвращает версию 
+		sp::string_t version();
+		void version(const sp::char_t * version);
+		void version(const sp::string_t & version);
+
+		// возвращает standalone 
+		sp::string_t standalone();
+		void standalone(const sp::char_t * standalone);
+		void standalone(const sp::string_t & standalone);
+
 		// загрузка из файла
 		sp::parse_result load_from_file(const sp::char_t * file_name);
 		sp::parse_result load_from_file(const sp::string_t & file_name);
@@ -453,10 +473,13 @@ namespace sp {
 		// парсинг атрибута
 		sp::attribute parse_attribute();
 
+		// парсинг пролога
+		sp::tag * parse_declaration();
+
 		sp::reader * reader = nullptr; // для получения текста
-		sp::tag * root = nullptr; // корневой тег
-		sp::tag * prologe = nullptr; // пролог
-		sp::error_type last_error = sp::error_type::none;
+		sp::tag * _root = nullptr; // корневой тег
+		sp::tag * declaration = nullptr; // пролог
+		sp::error_type last_error = sp::error_type::none; // последняя полученная ошибка
 
 	};
 };
