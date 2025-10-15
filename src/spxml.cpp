@@ -643,6 +643,15 @@ bool sp::attribute_table::check(attribute & attribute){
 	return false;
 }
 
+bool sp::attribute_table::check(attribute_table & table){
+	for (sp::attr_iterator it = table.begin(); it != table.end(); it++) {
+		if (!check(it->second)) {
+			return false;
+		}
+	}
+	return true;
+}
+
 size_t sp::attribute_table::size(){
 	return table.size();
 }
@@ -735,6 +744,86 @@ sp::attribute_table sp::tag::attributes() const{
 
 sp::attribute_table & sp::tag::attributes(){
 	return this->attrs;
+}
+
+sp::tag * sp::tag::get_tag(const sp::char_t * name){
+	for (sp::tag_iterator it = childs.begin(); it != childs.end(); it++) {
+		if (it->first == name) {
+			return &it->second;
+		}
+	}
+	sp::tag * result = nullptr; // если среди дочерних тегой не найдено
+	for (sp::tag_iterator it = childs.begin(); it != childs.end(); it++) {
+		result = it->second.get_tag(name);
+		if(result != nullptr){
+			break;
+		}
+	}
+	return result;
+}
+
+sp::tag * sp::tag::get_tag(const sp::char_t * name, sp::attribute_table attrib){
+	for (sp::tag_iterator it = childs.begin(); it != childs.end(); it++) {
+		if (it->first == name && it->second.attrs.check(attrib)) {
+			return &it->second;
+		}
+	}
+	sp::tag * result = nullptr; // если среди дочерних тегой не найдено
+	for (sp::tag_iterator it = childs.begin(); it != childs.end(); it++) {
+		result = it->second.get_tag(name, attrib);
+		if (result != nullptr) {
+			break;
+		}
+	}
+	return result;
+}
+
+sp::tag * sp::tag::get_tag(const sp::string_t & name){
+	return get_tag(name.c_str());
+}
+
+sp::tag * sp::tag::get_tag(const sp::string_t & name, sp::attribute_table attrib){
+	return get_tag(name.c_str(), attrib);
+}
+
+sp::tag_vector sp::tag::select(const sp::char_t * name){
+	sp::tag_vector result;
+	for (sp::tag_iterator it = childs.begin(); it != childs.end(); it++) {
+		if (it->first == name) {
+			result.push_back(&it->second);
+		}
+	}
+	for (sp::tag_iterator it = childs.begin(); it != childs.end(); it++) {
+		sp::tag_vector sub_result = it->second.select(name);
+		if(sub_result.size() != 0){
+			result.insert(result.end(), sub_result.begin(), sub_result.end());
+		}
+	}
+	return result;
+}
+
+sp::tag_vector sp::tag::select(const sp::char_t * name, sp::attribute_table attrib){
+	sp::tag_vector result;
+	for (sp::tag_iterator it = childs.begin(); it != childs.end(); it++) {
+		if (it->first == name && it->second.attrs.check(attrib)) {
+			result.push_back(&it->second);
+		}
+	}
+	for (sp::tag_iterator it = childs.begin(); it != childs.end(); it++) {
+		sp::tag_vector sub_result = it->second.select(name, attrib);
+		if (sub_result.size() != 0) {
+			result.insert(result.end(), sub_result.begin(), sub_result.end());
+		}
+	}
+	return result;
+}
+
+sp::tag_vector sp::tag::select(const sp::string_t & name){
+	return select(name.c_str());
+}
+
+sp::tag_vector sp::tag::select(const sp::string_t & name, sp::attribute_table attrib){
+	return select(name.c_str(), attrib);
 }
 
 void sp::tag::add_tag(sp::tag & new_child){

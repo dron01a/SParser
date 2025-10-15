@@ -25,8 +25,19 @@ int main(){
 
 	sp::xml_parser par;
 	sp::parse_result p_res = par.load_from_file(_t("test.xml"));
+	sp::tag_vector v_res = par.root()->select(_t("a"));
+
+	sp::string_t name = _t("obj");
+
+	sp::tag * obj = par.root()->get_tag(name, { { _t("b"), 2 } });
+
+	obj[0].attributes().add(_t("d"), 56);
 
 
+	obj = nullptr;
+	delete obj;
+
+	v_res.clear();
 
     return 0;
 }

@@ -5,6 +5,7 @@
 #include <cctype>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 #define SPW_MODE
 
@@ -36,6 +37,7 @@ namespace sp {
 	typedef std::map<sp::string_t, sp::attribute>::const_iterator const_attr_iterator;
 	typedef sp::tag_map::iterator tag_iterator;
 	typedef sp::tag_map::const_iterator const_tag_iterator;
+	typedef std::vector<sp::tag *> tag_vector;
 
 	enum class error_type {
 		none = 0,
@@ -54,7 +56,6 @@ namespace sp {
 		error_value_type,
 		atribute_exist,
 		atribute_not_exist,
-	//	tag_exist,
 		tag_not_exist,
 		file_not_found,
 		string_is_empty,
@@ -348,6 +349,7 @@ namespace sp {
 		bool check(const sp::char_t * name, sp::value val);
 		bool check(const sp::string_t & name, sp::value val);
 		bool check(attribute & attribute);
+		bool check(attribute_table & table);
 	
 		// возвращает размер таблицы
 		size_t size();
@@ -382,6 +384,8 @@ namespace sp {
 		tag(const sp::char_t * name, sp::tag_map childs);
 		tag(const sp::char_t * name, sp::attribute_table table, sp::tag_map childs);
 		
+		~tag() { };
+
 		// возвращает тип тега
 		sp::tag_type type() const;
 		sp::tag_type & type();
@@ -393,6 +397,18 @@ namespace sp {
 		// возвращает атрибуты тега
 		sp::attribute_table attributes() const;
 		sp::attribute_table & attributes();
+
+		// возвращает тег 
+		sp::tag * get_tag(const sp::char_t * name);
+		sp::tag * get_tag(const sp::char_t * name, sp::attribute_table attrib);
+		sp::tag * get_tag(const sp::string_t & name);
+		sp::tag * get_tag(const sp::string_t & name, sp::attribute_table attrib);
+
+		// возвращает все теги с заданым именем и атрибутами
+		sp::tag_vector select(const sp::char_t * name);
+		sp::tag_vector select(const sp::char_t * name, sp::attribute_table attrib);
+		sp::tag_vector select(const sp::string_t & name);
+		sp::tag_vector select(const sp::string_t & name, sp::attribute_table attrib);
 
 		// добавляет тег
 		void add_tag(sp::tag & new_child);
