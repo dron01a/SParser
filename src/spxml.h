@@ -17,6 +17,7 @@ namespace sp {
 	typedef std::wostream output_stream;
 	typedef std::wifstream ifile;
 	typedef std::wofstream ofile;
+	typedef std::wios ios;
 #define _t(c) L##c
 #else
 	typedef char char_t;
@@ -25,16 +26,21 @@ namespace sp {
 	typedef std::ostream output_stream;
 	typedef std::ifstream ifile;
 	typedef std::ofstream ofile;
+	typedef std::ios ios;
 #define _t(c) c
 #endif
 
 	class value;
 	class attribute;
 	class tag;
+	class reader;
+	class writer;
+	class xml_parser;
 
 	typedef std::multimap<sp::string_t, sp::tag> tag_map;
-	typedef std::map<sp::string_t, sp::attribute>::iterator attr_iterator;
-	typedef std::map<sp::string_t, sp::attribute>::const_iterator const_attr_iterator;
+	typedef std::map<sp::string_t, sp::attribute> attribute_map;
+	typedef sp::attribute_map::iterator attr_iterator;
+	typedef sp::attribute_map::const_iterator const_attr_iterator;
 	typedef sp::tag_map::iterator tag_iterator;
 	typedef sp::tag_map::const_iterator const_tag_iterator;
 	typedef std::vector<sp::tag *> tag_vector;
@@ -107,6 +113,11 @@ namespace sp {
 	enum class tag_type {
 		tag = 0, // простой тег
 		autoclose_tag, // самозакрывающийс€ тег
+	};
+
+	enum class write_result {
+		write_ok,
+		write_error
 	};
 
 	enum class parse_result {
@@ -367,7 +378,7 @@ namespace sp {
 		bool operator!=(const sp::attribute_table & attrib_table);
 
 	private:
-		std::map<sp::string_t, sp::attribute> table; // map с атрибутами
+		attribute_map table; // map с атрибутами
 	};
 
 	// класс описывающий тег
@@ -385,6 +396,10 @@ namespace sp {
 		tag(const sp::char_t * name, sp::attribute_table table, sp::tag_map childs);
 		
 		~tag() { };
+
+		// возвращает им€ тега
+		sp::string_t name() const;
+		sp::string_t & name();
 
 		// возвращает тип тега
 		sp::tag_type type() const;
@@ -439,6 +454,110 @@ namespace sp {
 
 	};
 
+	// базовый класс дл€ записи данных 
+	class writer {
+	public:
+		// конструктор класса
+		writer(sp::string_t & data);
+		writer(const sp::char_t * data);
+		writer(sp::output_stream & stream);
+
+		// функци€ начинающа€ запись
+		sp::write_result write(sp::tag & root);
+
+		// установка флага форматировани€ 
+		void format(bool val);
+
+		// возвращает true если готов записывать данные
+		virtual bool ready() = 0;
+
+		// функци€ вывода информации
+		virtual void write_data(sp::char_t data) = 0;
+		virtual void write_data(const sp::char_t * data) = 0;
+		virtual void write_data(const sp::string_t & data) = 0;
+
+	private:
+		// печать тега
+		void write_tag(sp::tag & tag);
+
+		// печать атрибута
+		void write_attr(sp::attribute & attr);
+
+		// печать текста
+		void write_text(sp::value & text);
+
+		// вставка табул€ций
+		void insert_tabs(int n);
+
+		bool _format = true; // флаг форатировани€
+		int level = 0;
+
+	};
+
+	// запись в файл
+	class file_writer : public writer {
+	public:
+		// конструктор класса
+		file_writer(sp::string_t & file_name);
+		file_writer(const sp::char_t * file_name);
+
+		// деструктор класса
+		~file_writer();
+
+		// функци€ вывода информации
+		void write_data(sp::char_t data);
+		void write_data(const sp::char_t * data);
+		void write_data(const sp::string_t & data);
+
+		// возвращает true если готов записывать данные
+		bool ready();
+
+	private:
+		sp::ofile file; // файл вывода
+	};
+
+	// запись в строку
+	class string_writer : public writer {
+	public:
+		// конструктор класса
+		string_writer(sp::string_t & result);
+
+		// деструктор класса
+		~string_writer();
+
+		// функци€ вывода информации
+		void write_data(sp::char_t data);
+		void write_data(const sp::char_t * data);
+		void write_data(const sp::string_t & data);
+
+		// возвращает true если готов записывать данные
+		bool ready();
+
+	private:
+		sp::string_t * _result = nullptr; // указатель на строку
+	};
+
+	// запись в поток
+	class stream_writer : public writer {
+	public:
+		// конструктор класса
+		stream_writer(sp::output_stream & stream);
+
+		// деструктор класса
+		~stream_writer();
+
+		// функци€ вывода информации
+		void write_data(sp::char_t data);
+		void write_data(const sp::char_t * data);
+		void write_data(const sp::string_t & data);
+
+		// возвращает true если готов записывать данные
+		bool ready();
+
+	private:
+		sp::output_stream * stream; // ссылка на поток
+	};
+
 	// класс парсера xml
 	class xml_parser {
 	public:
@@ -476,6 +595,16 @@ namespace sp {
 
 		// загрузка из потока
 		sp::parse_result load_from_stream(sp::input_stream & stream);
+
+		// загрузка данных в файл 
+		sp::write_result load_to_file(const sp::string_t & file_name);
+		sp::write_result load_to_file(const sp::char_t * file_name);
+
+		// загрузка данных в строку
+		sp::write_result load_to_string(sp::string_t & result);
+
+		// загрузка в поток
+	    sp::write_result load_to_stream(sp::output_stream & stream);
 
 		// функци€ возвращающа€ последнюю полученную ошибку
 		sp::error_type get_last_error();

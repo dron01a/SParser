@@ -25,7 +25,7 @@ int main(){
 
 	sp::xml_parser par;
 	sp::parse_result p_res = par.load_from_file(_t("test.xml"));
-	sp::tag_vector v_res = par.root()->select(_t("a"));
+	/*sp::tag_vector v_res = par.root()->select(_t("a"));
 
 	sp::string_t name = _t("obj");
 
@@ -35,9 +35,15 @@ int main(){
 
 
 	obj = nullptr;
-	delete obj;
+	delete obj;*/
 
-	v_res.clear();
+	//v_res.clear();
+
+	sp::string_t s;
+
+	par.load_to_file(_t("dest3.xml"));
+	par.load_to_string(s);
+	par.load_to_stream(std::wcout);
 
     return 0;
 }
