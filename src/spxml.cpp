@@ -59,6 +59,7 @@ sp::token sp::reader::get_next_token(){
 		if (cur_char.type != sp::char_type::close_brt) {
 			throw sp::error_type::autoclose_tag_error;
 		}
+		last_token.type = sp::token_type::tag_autoclose_end;
 		break;
 	case sp::char_type::question_mark:
 		cur_char = get_next_char();
