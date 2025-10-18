@@ -879,10 +879,190 @@ sp::tag_iterator sp::tag::end(){
 	return this->childs.end();
 }
 
+sp::writer::writer(sp::string_t & data) { }
+
+sp::writer::writer(const sp::char_t * data) { }
+
+sp::writer::writer(sp::output_stream & stream) { }
+
+sp::write_result sp::writer::write(sp::tag & root) {
+	write_tag(root);
+	return sp::write_result::write_ok;
+}
+
+void sp::writer::format(bool val) {
+	_format = val;
+}
+
+void sp::writer::write_tag(sp::tag & tag) {
+	if (_format) {
+		insert_tabs(level);
+	}
+	write_data(_t("<"));
+	write_data(tag.name());
+	if (tag.attributes().size() != 0) {
+		for (sp::attr_iterator it = tag.attributes().begin(); it != tag.attributes().end(); it++) {
+			write_attr(it->second);
+		}
+	}
+	switch (tag.type()) {
+	case sp::tag_type::tag:
+		level++;
+		write_data(_t('>'));
+		if (_format) {
+			write_data(_t('\n'));
+		}
+		for (sp::tag_iterator it = tag.begin(); it != tag.end(); it++) {
+			write_tag(it->second);
+		}
+		if (!tag.text().to_string().empty()) {
+			write_text(tag.text());
+		}
+		level--;
+		insert_tabs(level);
+		write_data(_t("</"));
+		write_data(tag.name());
+		write_data(_t('>'));
+		break;
+	case sp::tag_type::autoclose_tag:
+		write_data(_t("/>"));
+		break;
+	}
+	if (_format) {
+		write_data(_t('\n'));
+	}
+}
+
+void sp::writer::write_attr(sp::attribute & attr) {
+	write_data(_t(' '));
+	write_data(attr.name());
+	write_data(_t("=\""));
+	write_value(attr.value());
+	write_data(_t('\"'));
+}
+
+void sp::writer::write_text(sp::value & text) {
+	if (_format) {
+		insert_tabs(level);
+	}
+	write_value(text);
+	if (_format) {
+		write_data(_t('\n'));
+	}
+}
+
+void sp::writer::write_value(sp::value & val) {
+	for (size_t i = 0; i < val.to_string().size(); i++) {
+		switch (val.to_string()[i]) {
+		case '<':
+			write_data(_t("&lt"));
+			break;
+		case '>':
+			write_data(_t("&gt"));
+			break;
+		case '\'':
+			write_data(_t("&apos"));
+			break;
+		case '\"':
+			write_data(_t("&quot"));
+			break;
+		case '&':
+			write_data(_t("&amp"));
+			break;
+		default:
+			write_data(val.to_string()[i]);
+			break;
+		}
+	}
+}
+
+void sp::writer::insert_tabs(int n) {
+	for (size_t i = 0; i < n; i++) {
+		write_data(_t('\t'));
+	}
+}
+
+sp::file_writer::file_writer(sp::string_t & file_name) : writer(file_name) {
+	file.open(file_name, std::ios::binary | sp::ios::trunc);
+}
+
+sp::file_writer::file_writer(const sp::char_t * file_name) : writer(file_name) {
+	file.open(file_name, std::ios::binary | sp::ios::trunc);
+}
+
+sp::file_writer::~file_writer() {
+	file.close();
+}
+
+void sp::file_writer::write_data(sp::char_t data) {
+	file << data;
+}
+
+void sp::file_writer::write_data(const sp::char_t * data) {
+	file << data;
+}
+
+void sp::file_writer::write_data(const sp::string_t & data) {
+	file << data;
+}
+
+bool sp::file_writer::ready() {
+	return file.good();
+}
+
+sp::string_writer::string_writer(sp::string_t & result) : writer(result) {
+	_result = &result;
+}
+
+sp::string_writer::~string_writer() {
+	_result = nullptr;
+	delete _result;
+}
+
+void sp::string_writer::write_data(sp::char_t data) {
+	*_result += data;
+}
+
+void sp::string_writer::write_data(const sp::char_t * data) {
+	*_result += data;
+}
+
+void sp::string_writer::write_data(const sp::string_t & data) {
+	*_result += data;
+}
+
+bool sp::string_writer::ready() {
+	return _result != nullptr;
+}
+
+sp::stream_writer::stream_writer(sp::output_stream & _stream) : writer(_stream) {
+	stream = &_stream;
+}
+
+sp::stream_writer::~stream_writer() {
+	stream = nullptr;
+	delete stream;
+}
+
+void sp::stream_writer::write_data(sp::char_t data) {
+	*stream << data;
+}
+
+void sp::stream_writer::write_data(const sp::char_t * data) {
+	*stream << data;
+}
+
+void sp::stream_writer::write_data(const sp::string_t & data) {
+	*stream << data;
+}
+
+bool sp::stream_writer::ready() {
+	return stream->good();
+}
+
 sp::xml_parser::xml_parser() { }
 
 sp::xml_parser::~xml_parser(){
-	//delete this->reader;
 	delete this->_root;
 	delete this->declaration;
 }
@@ -1098,185 +1278,4 @@ sp::tag * sp::xml_parser::parse_declaration(){
 		}
 	}
 	return result;
-}
-
-sp::writer::writer(sp::string_t & data){ }
-
-sp::writer::writer(const sp::char_t * data){ }
-
-sp::writer::writer(sp::output_stream & stream){ }
-
-sp::write_result sp::writer::write(sp::tag & root){
-	write_tag(root);
-	return sp::write_result::write_ok;
-}
-
-void sp::writer::format(bool val){
-	_format = val;
-}
-
-void sp::writer::write_tag(sp::tag & tag){
-	if (_format) {
-		insert_tabs(level);
-	}
-	write_data(_t("<"));
-	write_data(tag.name());
-	if (tag.attributes().size() != 0) {
-		for (sp::attr_iterator it = tag.attributes().begin(); it != tag.attributes().end(); it++) {
-			write_attr(it->second);
-		}
-	}
-	switch (tag.type()){
-	case sp::tag_type::tag:
-		level++;
-		write_data(_t('>'));
-		if (_format) {
-			write_data(_t('\n'));
-		}
-		for (sp::tag_iterator it = tag.begin(); it != tag.end(); it++) {
-			write_tag(it->second);
-		}
-		if (!tag.text().to_string().empty()) {
-			write_text(tag.text());
-		}
-		level--;
-		insert_tabs(level);
-		write_data(_t("</"));
-		write_data(tag.name());
-		write_data(_t('>'));
-		break;
-	case sp::tag_type::autoclose_tag:
-		write_data(_t("/>"));
-		break;
-	}
-	if (_format) {
-		write_data(_t('\n'));
-	}
-}
-
-void sp::writer::write_attr(sp::attribute & attr){
-	write_data(_t(' '));
-	write_data(attr.name());
-	write_data(_t("=\""));
-	write_value(attr.value());
-	write_data(_t('\"'));
-}
-
-void sp::writer::write_text(sp::value & text){
-	if (_format) {
-		insert_tabs(level);
-	}
-	write_value(text);
-	if (_format) {
-		write_data(_t('\n'));
-	}
-}
-
-void sp::writer::write_value(sp::value & val){
-	for (size_t i = 0; i < val.to_string().size(); i++) {
-		switch (val.to_string()[i]) {
-		case '<':
-			write_data(_t("&lt"));
-			break;
-		case '>':
-			write_data(_t("&gt"));
-			break;
-		case '\'':
-			write_data(_t("&apos"));
-			break;
-		case '\"':
-			write_data(_t("&quot"));
-			break;
-		case '&':
-			write_data(_t("&amp"));
-			break;
-		default:
-			write_data(val.to_string()[i]);
-			break;
-		}
-	}
-}
-
-void sp::writer::insert_tabs(int n){
-	for (size_t i = 0; i < n; i++) {
-		write_data(_t('\t'));
-	}
-}
-
-sp::file_writer::file_writer(sp::string_t & file_name) : writer(file_name){
-	file.open(file_name, std::ios::binary | sp::ios::trunc);
-}
-
-sp::file_writer::file_writer(const sp::char_t * file_name) : writer(file_name) {
-	file.open(file_name, std::ios::binary | sp::ios::trunc);
-}
-
-sp::file_writer::~file_writer(){
-	file.close();
-}
-
-void sp::file_writer::write_data(sp::char_t data){
-	file << data;
-}
-
-void sp::file_writer::write_data(const sp::char_t * data) {
-	file << data;
-}
-
-void sp::file_writer::write_data(const sp::string_t & data) {
-	file << data;
-}
-
-bool sp::file_writer::ready(){
-	return file.good();
-}
-
-sp::string_writer::string_writer(sp::string_t & result) : writer(result) {
-	_result =& result;
-}
-
-sp::string_writer::~string_writer(){
-	_result = nullptr;
-	delete _result;
-}
-
-void sp::string_writer::write_data(sp::char_t data){
-	*_result += data;
-}
-
-void sp::string_writer::write_data(const sp::char_t * data){
-	*_result += data;
-}
-
-void sp::string_writer::write_data(const sp::string_t & data){
-	*_result += data;
-}
-
-bool sp::string_writer::ready(){
-	return _result != nullptr;
-}
-
-sp::stream_writer::stream_writer(sp::output_stream & _stream) : writer(_stream) {
-	stream = & _stream;
-}
-
-sp::stream_writer::~stream_writer(){
-	stream = nullptr;
-	delete stream;
-}
-
-void sp::stream_writer::write_data(sp::char_t data){
-	*stream << data;
-}
-
-void sp::stream_writer::write_data(const sp::char_t * data){
-	*stream << data;
-}
-
-void sp::stream_writer::write_data(const sp::string_t & data){
-	*stream << data;
-}
-
-bool sp::stream_writer::ready(){
-	return stream->good();
 }

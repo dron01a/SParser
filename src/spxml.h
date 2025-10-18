@@ -7,7 +7,7 @@
 #include <vector>
 #include <algorithm>
 
-#define SPW_MODE
+//#define SPW_MODE
 
 namespace sp {
 #ifdef SPW_MODE
