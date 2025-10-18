@@ -486,6 +486,9 @@ namespace sp {
 		// печать текста
 		void write_text(sp::value & text);
 
+		// записывает значение
+		void write_value(sp::value & val);
+
 		// вставка табуляций
 		void insert_tabs(int n);
 

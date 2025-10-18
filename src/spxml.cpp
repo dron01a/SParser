@@ -1158,7 +1158,7 @@ void sp::writer::write_attr(sp::attribute & attr){
 	write_data(_t(' '));
 	write_data(attr.name());
 	write_data(_t("=\""));
-	write_data(attr.value().to_string());
+	write_value(attr.value());
 	write_data(_t('\"'));
 }
 
@@ -1166,9 +1166,34 @@ void sp::writer::write_text(sp::value & text){
 	if (_format) {
 		insert_tabs(level);
 	}
-	write_data(text.to_string());
+	write_value(text);
 	if (_format) {
 		write_data(_t('\n'));
+	}
+}
+
+void sp::writer::write_value(sp::value & val){
+	for (size_t i = 0; i < val.to_string().size(); i++) {
+		switch (val.to_string()[i]) {
+		case '<':
+			write_data(_t("&lt"));
+			break;
+		case '>':
+			write_data(_t("&gt"));
+			break;
+		case '\'':
+			write_data(_t("&apos"));
+			break;
+		case '\"':
+			write_data(_t("&quot"));
+			break;
+		case '&':
+			write_data(_t("&amp"));
+			break;
+		default:
+			write_data(val.to_string()[i]);
+			break;
+		}
 	}
 }
 
